@@ -16,6 +16,279 @@
 	</head>
 	<body>
 
+        <section class="dev-media-playback container-2xl">
+			<h2 class="h1">Media Playback Component</h2>
+
+            <p>Prototyped on Codepen: <a href="https://codepen.io/csatch/pen/ZEZVayv" target="_blank">https://codepen.io/csatch/pen/ZEZVayv</a></p>
+
+            <div class="dev-media-playback__example">
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+
+                        class CSPlayPauseButton extends HTMLElement {
+
+                            /** @type HTMLButtonElement */
+                            button = '';
+
+                            /** @type HTMLMediaElement */
+                            targetMedia = '';
+
+                            constructor () {
+                                super();
+                            }
+
+                            loadStyles () {
+                                let styles = document.createElement('style');
+                                styles.textContent = `
+                                    :is(cs-playpause, media-playback) > button,
+                                    button.cs-playpause__button {
+                                        --color: white;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        width: calc(42/16*1rem);
+                                        height: calc(42/16*1rem);
+                                        border-radius: 9999px;
+                                        position: absolute;
+                                        bottom: 1.2rem;
+                                        right: 0.75rem;
+                                        z-index: 4;
+                                        cursor: pointer;
+                                        background-color: #00000080;
+                                        border: 2px solid #FFFFFF70;
+                                        padding: 0;
+                                    }
+                                    :is(cs-playpause, media-playback) > button:hover,
+                                    button.cs-playpause__button:hover {
+                                        box-shadow: 0 0 0 1px white;
+                                        border-color: white !important;
+                                    }
+                                    :is(cs-playpause, media-playback) > button:focus-visible,
+                                    button.cs-playpause__button:focus-visible {
+                                        box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
+                                        border-color: white !important;
+                                    }
+                                    :is(cs-playpause, media-playback) > button::after,
+                                    button.cs-playpause__button::after {
+                                        content: '';
+                                        width: 100%;
+                                        height: 100%;
+                                        display: inline-block;
+                                        position: relative;
+                                        background: center center scroll no-repeat;
+                                        background-size: 14px;
+                                        pointer-events: none;
+                                        transform: translate(0, 0);
+                                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
+                                    }
+                                    :is(cs-playpause, media-playback) > button[aria-pressed="true"]::after,
+                                    button.cs-playpause__button[aria-pressed="true"]::after {
+                                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");
+                                        transform: translate(1px, 0);
+                                    }
+                                    :is(cs-playpause, media-playback) > button.replay::after,
+                                    button.cs-playpause__button.replay::after {
+                                        transform: scale(1.3);
+                                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E");
+                                    }
+                                `;
+                                this.prepend(styles);
+                            }
+
+                            /* Create the button element if no child button element is present */
+                            createButton () {
+                                this.button = document.createElement('button');
+                                this.button.classList.add('cs-playpause__button', 'create-button');
+                                this.button.setAttribute('aria-label', 'Pause');
+                                this.button.setAttribute('aria-pressed', 'false');
+                                this.button.setAttribute('aria-controls', '');
+                            }
+
+                            /* Use the button element if a child button element is present */
+                            setButton () {
+                                this.button = this.querySelector('button');
+                                this.button.classList.add('cs-playpause__button', 'set-button');
+
+                                if ( ! this.button.hasAttribute('aria-label') ) {
+                                    this.button.setAttribute('aria-label', 'Pause');
+                                }
+                                if ( ! this.button.hasAttribute('aria-pressed') ) {
+                                    this.button.setAttribute('aria-pressed', 'false');
+                                }
+                                if ( this.button.innerHTML.trim() !== '' ) {
+                                    this.button.innerHTML = '';
+                                }
+                            }
+
+                            playPauseHandler ( btn = this.button, targetMedia = this.targetMedia ) {
+                                btn.classList.remove('replay');
+
+                                // Play
+                                if ( btn.classList.contains('is-paused') ) {
+                                    btn.classList.remove('is-paused');
+                                    btn.setAttribute('aria-pressed', 'false');
+                                    targetMedia.play();
+                                }
+
+                                // Pause
+                                else {
+                                    btn.classList.add('is-paused');
+                                    btn.setAttribute('aria-pressed', 'true');
+                                    targetMedia.pause();
+                                }
+                            }
+
+                            hasReducedMotion () {
+                                const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
+
+                                if ( hasReducedMotion ) this.playPauseHandler();
+                            }
+
+                            connectedCallback () {
+                                let hasButtonElement = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
+
+                                this.targetMedia = document.querySelector( this.getAttribute( 'target' ) );
+
+                                if ( this.targetMedia !== false && ! hasButtonElement ) {
+                                    this.createButton();
+                                    this.button.setAttribute('aria-controls', `${this.getAttribute('target')?.replace('#', '')}`);
+                                }
+
+                                else if ( this.targetMedia !== false && hasButtonElement ) {
+                                    this.setButton()
+                                    this.button.setAttribute('aria-controls', `${this.getAttribute('target')?.replace('#', '')}`);
+                                }
+
+                                /* HACK: Proof of Concept for a nested video element */
+                                console.log('Nested video element found:', this.targetMedia);
+                                if (
+                                    ( this.targetMedia == false || this.targetMedia == null )
+                                    && this.querySelector('video')
+                                ) {
+                                    this.targetMedia = this.querySelector('video');
+
+
+
+                                    let _videoID = `video-${Math.floor(Math.random() * 1000)}`
+
+                                    this.targetMedia.setAttribute('id', _videoID); // Give the video an ID if it doesn't have one
+
+                                    this.createButton()
+
+                                    this.button.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
+                                }
+
+                                if ( this.targetMedia instanceof HTMLMediaElement ) {
+
+                                    // Append the button to the custom element
+                                    this.appendChild(this.button); // NOTE: not needed if button is a child element
+
+                                    // Load styles
+                                    this.loadStyles();
+
+                                    // Detect reduced motion preference and pause the video if set
+                                    this.hasReducedMotion();
+
+                                    // Event listener for pointer & keyboard events
+                                    // Buttons are natively clickable and keyboard accessible:
+                                    // - pointer:click/tap
+                                    // - keyup:spacebar
+                                    // - keydown:enter
+                                    this.button.addEventListener('click', (ev) => {
+                                        ev.preventDefault();
+                                        this.playPauseHandler();
+                                    });
+
+                                    // Event listener for
+                                    this.targetMedia.onended = () => {
+                                        this.playPauseHandler();
+                                        this.button.classList.add('replay');
+                                    };
+
+                                } else {
+                                    console.error('The target video element with an ID does not exist');
+                                }
+                            }
+
+                        }
+
+                        //customElements.define('cs-playpause', CSPlayPauseButton);
+
+                        customElements.define('media-playback', CSPlayPauseButton);
+
+                    });
+                </script>
+
+                <div style="position:relative; display: inline-flex; gap: 24px">
+
+                    <div>
+                        <div style="position: relative;">
+                            <media-playback target="#video"></media-playback>
+                            <video
+                                id="video"
+                                src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
+                                autoplay muted preload="auto">
+                            </video>
+                        </div>
+                        <p><small>The button is automatically created <br>because no child button element is provided.</small></p>
+                    </div>
+
+                    <div>
+                        <div style="position: relative;">
+
+                            <media-playback target="#video2">
+                                <button>...</button>
+                            </media-playback>
+
+                            <video
+                                id="video2"
+                                src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
+                                autoplay muted preload="auto">
+                            </video>
+
+                        </div>
+                        <p><small>Enhance the child element provided</small></p>
+                    </div>
+
+                    <div>
+                        <div style="position: relative;">
+
+                            <media-playback>
+                                <video
+                                    src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
+                                    autoplay muted preload="auto"
+                                    style="margin:0">
+                                </video>
+                            </media-playback>
+
+                        </div>
+                        <p><small>Has a nested video element. Enhance the child element provided</small></p>
+                    </div>
+                </div>
+
+                </div>
+
+                <div class="notes margin-start-xl">
+
+                    <h3 class="h2">Events</h3>
+
+                    <ul>
+                        <li>pointer:click/tap</li>
+                        <li>keyup:spacebar</li>
+                        <li>keydown:enter</li>
+                        <li>media:ended/onended</li>
+                        <li>media:play</li>
+                        <li>media:playing</li>
+                        <li>media:loading</li>
+                    </ul>
+                </div>
+
+            </div>
+		</section>
+
+		<hr>
+
 		<header class="container-2xl">
 			<kelp-subnav>
 				<nav class="navbar">
