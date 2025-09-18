@@ -13,6 +13,78 @@
 
 		<!-- Dark Mode -->
 		<script src="./modules/js/dark-mode-auto.js"></script>
+
+        <style>
+
+            kelp-media-playback {
+                --icon-play: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");;
+                --icon-pause: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
+                --icon-replay: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E");
+
+                --button-color: white;
+                --button-bg: #00000080;
+                --button-border: #FFFFFF70;
+                --button-hover-border: white;
+                --button-focus-shadow: #4285F4;
+
+                --button-size: calc(42/16*1rem);
+
+                & button {
+                    color: var(--button-color);
+                    width: var(--button-size);
+                    height: var(--button-size);
+                    background-color: var(--button-bg);
+                    border: 2px solid var(--button-border);
+
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    border-radius: 9999px;
+                    cursor: pointer;
+
+                    z-index: 2;
+                    position: absolute;
+                    bottom: 1.2rem;
+                    right: 0.75rem;
+
+                    &:hover {
+                        box-shadow: 0 0 0 1px white;
+                        border-color: white !important;
+                    }
+
+                    &:focus-visible {
+                        box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
+                        border-color: white !important;
+                    }
+
+                    &::after {
+                        content: '';
+                        width: 100%;
+                        height: 100%;
+                        display: inline-block;
+                        position: relative;
+                        background: center center scroll no-repeat;
+                        background-size: 14px;
+                        pointer-events: none;
+                        transform: translate(0, 0);
+                        background-image: var(--icon-pause);
+                    }
+
+                    &[aria-pressed="true"]::after {
+                        background-image: var(--icon-play);
+                        transform: translate(1px, 0);
+                    }
+
+                    &.replay::after {
+                        transform: scale(1.3);
+                        background-image: var(--icon-replay);
+                    }
+                }
+            }
+
+        </style>
 	</head>
 	<body>
 
@@ -30,12 +102,12 @@
 
                         <div style="position: relative;">
 
-                            <media-playback target="waterfall"></media-playback>
+                            <kelp-media-playback target="waterfall"></kelp-media-playback>
 
                             <video
                                 id="waterfall"
                                 src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
-                                autoplay muted preload="auto">
+                                muted preload="auto" autoplay>
                             </video>
 
                         </div>
@@ -46,13 +118,14 @@
 
                     </div>
 
-                    <div role="listitem">
+
+                    <!-- <div role="listitem">
 
                         <div style="position: relative;">
 
-                            <media-playback target="#video2">
+                            <kelp-media-playback target="#video2">
                                 <button>&#128128;</button>
-                            </media-playback>
+                            </kelp-media-playback>
 
                             <video
                                 id="video2"
@@ -64,23 +137,23 @@
 
                         <p><small>Enhance the child element provided</small></p>
 
-                    </div>
+                    </div> -->
 
 
-                    <div role="listitem">
+                    <!-- <div role="listitem">
                         <div style="position: relative;">
 
-                            <media-playback>
+                            <kelp-media-playback>
                                 <video
                                     src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
-                                    autoplay muted preload="auto"
+                                    muted preload="auto"
                                     style="margin:0">
                                 </video>
-                            </media-playback>
+                            </kelp-media-playback>
 
                         </div>
                         <p><small>Has a nested video element. Enhance the child element provided</small></p>
-                    </div>
+                    </div> -->
 
                 </div>
 
@@ -103,302 +176,6 @@
             </div>
 
 		</section>
-
-        <!-- START Component Styles -->
-<style>
-    :is(cs-playpause, media-playback) > button,
-    button.cs-playpause__button {
-        --color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: calc(42/16*1rem);
-        height: calc(42/16*1rem);
-        border-radius: 9999px;
-        position: absolute;
-        bottom: 1.2rem;
-        right: 0.75rem;
-        z-index: 4;
-        cursor: pointer;
-        background-color: #00000080;
-        border: 2px solid #FFFFFF70;
-        padding: 0;
-    }
-    :is(cs-playpause, media-playback) > button:hover,
-    button.cs-playpause__button:hover {
-        box-shadow: 0 0 0 1px white;
-        border-color: white !important;
-    }
-    :is(cs-playpause, media-playback) > button:focus-visible,
-    button.cs-playpause__button:focus-visible {
-        box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
-        border-color: white !important;
-    }
-    :is(cs-playpause, media-playback) > button::after,
-    button.cs-playpause__button::after {
-        content: '';
-        width: 100%;
-        height: 100%;
-        display: inline-block;
-        position: relative;
-        background: center center scroll no-repeat;
-        background-size: 14px;
-        pointer-events: none;
-        transform: translate(0, 0);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
-    }
-    :is(cs-playpause, media-playback) > button[aria-pressed="true"]::after,
-    button.cs-playpause__button[aria-pressed="true"]::after {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");
-        transform: translate(1px, 0);
-    }
-    :is(cs-playpause, media-playback) > button.replay::after,
-    button.cs-playpause__button.replay::after {
-        transform: scale(1.3);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E");
-    }
-</style>
-<!-- END Component Styles -->
-
-<!-- START Component Definition -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-class mediaPlayback extends HTMLElement {
-
-    /**
-     * Class Fields
-     *
-     * @type { string | boolean }             targetAttr      The target attribute value or false if not set.
-     * @type { HTMLButtonElement | boolean }  playbackButton  The play/pause button element or false if not set.
-     * @type { HTMLMediaElement | boolean }   targetMedia     The targeted HTMLMediaElement or false if not found.
-     */
-
-    // The target attribute is a string used to select the target HTMLMediaElement by ID.
-    targetAttr = null;
-
-    // User provided or generated <button> element for the play/pause ("Playback") button.
-    playbackButton = null;
-
-    // The audio or video HTMLMediaElement that needs to be controlled.
-    targetMedia = null;
-
-
-    /**
-     *  When connected to the DOM, run the init() method when ready.
-     */
-
-    connectedCallback () {
-        if ( typeof ready === "function" ) {
-            ready(this);
-        } else {
-            this.init();
-        }
-    }
-
-
-    /**
-     * When initialized, do a great many things.
-     *  1. Don't run if already initialized
-     *  2. Get settings
-     *  3. Render
-     *  4. On "Ready" updates
-     */
-
-    init () {
-
-        /*
-            1. Don't run if already initialized
-        */
-        if ( this.hasAttribute( 'is-ready' ) ) return;
-
-
-        /*
-            2. Get settings
-        */
-
-        // 2a. Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
-        this.targetAttr = this.getAttribute( 'target' ) ?? false;
-
-        let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
-        let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
-
-        // 2b. Because this is a HTML Web Component the user is expected to provide a child <button> element
-        // for the play/pause ("Playback") button. If no button is provided, we will create one later.
-        this.playbackButton = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
-
-        // 3b. Check the target attribute exists and it can be used to select a HTMLMediaElement.
-        this.targetMedia = ( this.targetAttr !== false && document.querySelector( _mediaSelector ) instanceof HTMLMediaElement) ? document.querySelector( _mediaSelector ) : false;
-
-        /*
-            3. Render
-        */
-
-        // NOTE: If render() does not succeed, then run the code inside the block.
-        if ( !this.render() ) {
-            if ( typeof debug === "function" ) {
-                debug(this, 'The target video element with an ID does not exist');
-            } else {
-                this.init();
-            }
-            return;
-        }
-
-        /*
-            4. Ready
-        */
-        if ( typeof emit === "function" ) {
-            emit(this, 'media-playback', 'ready');
-        }
-
-        this.setAttribute('is-ready', '');
-    }
-
-
-    /**
-     * Render the component's HTML structure.
-     *  1. Check for a nested video or audio element and set an ID attribute.
-     *  2. Use the button element if a child button element is present.
-     *  2b. OR Create the button element if no child button element is present.
-     *  3. If we have a valid targetMedia, append the button and add event listeners.
-     */
-
-    render () {
-
-        /*
-            1. Check for a nested video or audio element and set an ID attribute.
-        */
-        if ( this.querySelector('video, audio') instanceof HTMLMediaElement) {
-
-            let _targetMediaID = `video-${Math.floor(Math.random() * 1000)}`;
-
-            this.targetMedia = this.querySelector('video, audio');
-
-            // Ensure the video has an ID for aria-controls
-            this.targetMedia.setAttribute('id', _targetMediaID);
-        }
-
-        /*
-            2. Use the button element if a child button element is present
-        */
-        if ( ( this.targetAttr && this.targetMedia ) && this.querySelector('button') ) {
-            this.setPlayBackButton();
-        }
-
-        /*
-            2b. OR Create the button element if no child button element is present
-        */
-        else if ( this.targetMedia !== false && ! this.querySelector('button') ) {
-            this.createPlayBackButton();
-        }
-
-        /*
-            3. If we have a valid targetMedia, append the button and add event listeners
-        */
-        if ( this.targetMedia instanceof HTMLMediaElement ) {
-
-            // Append the button to the custom element
-            this.appendChild(this.playbackButton); // NOTE: not needed if button is a child element
-
-            this.hasReducedMotion();
-
-            this.onPointerEvents();
-
-            this.onMediaEnded();
-
-        } else {
-            return false;
-        }
-
-        return true;
-
-    }
-
-
-
-    /**
-     * Helper and Event Methods.
-     */
-
-    getMediaState () {
-        if (this.targetMedia.ended) return "ended";
-        if (this.targetMedia.paused) return "paused";
-        return "playing";
-    }
-
-    setPlayBackButton () {
-        let mediaState = this.getMediaState();
-        let setPressedState = ( mediaState === 'playing' ) ? 'false' : 'true';
-
-        this.playbackButton = this.querySelector('button');
-        this.playbackButton.classList.add('cs-playpause__button', 'set-button');
-
-        if ( ! this.playbackButton.hasAttribute('aria-label') ) {
-            this.playbackButton.setAttribute('aria-label', 'Pause');
-        }
-        if ( ! this.playbackButton.hasAttribute('aria-pressed') ) {
-            this.playbackButton.setAttribute('aria-pressed', setPressedState);
-        }
-        if ( this.playbackButton.innerHTML.trim() !== '' ) {
-            this.playbackButton.innerHTML = '';
-        }
-        this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
-    }
-
-    createPlayBackButton () {
-        this.playbackButton = document.createElement('button');
-        this.playbackButton.classList.add('cs-playpause__button', 'create-button');
-        this.playbackButton.setAttribute('aria-label', 'Pause');
-        this.playbackButton.setAttribute('aria-pressed', 'false');
-        this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
-    }
-
-    onPointerEvents () {
-        this.playbackButton.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            this.playPauseHandler();
-        });
-    }
-
-    onMediaEnded () {
-        // Event listener for
-        this.targetMedia.addEventListener('ended', (ev) => {
-            this.playPauseHandler();
-            this.playbackButton.classList.add('replay');
-        });
-    }
-
-    hasReducedMotion () {
-        const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
-
-        if ( hasReducedMotion ) this.playPauseHandler();
-    }
-
-    playPauseHandler ( btn = this.playbackButton, media = this.targetMedia ) {
-        btn.classList.remove('replay');
-
-        // Play
-        if ( btn.getAttribute('aria-pressed') == 'true' ) {
-            btn.classList.remove('is-paused');
-            btn.setAttribute('aria-pressed', 'false');
-            media.play();
-        }
-
-        // Pause
-        else {
-            btn.classList.add('is-paused');
-            btn.setAttribute('aria-pressed', 'true');
-            media.pause();
-        }
-    }
-
-}
-
-customElements.define( 'media-playback', mediaPlayback );
-
-});
-</script>
-<!-- END Component Definition -->
 
 		<script type="module">
 			document.addEventListener('kelp:debug', (event) => {
