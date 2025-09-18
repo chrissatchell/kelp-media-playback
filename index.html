@@ -17,241 +17,57 @@
 	<body>
 
         <section class="dev-media-playback container-2xl">
+
 			<h2 class="h1">Media Playback Component</h2>
 
             <p>Prototyped on Codepen: <a href="https://codepen.io/csatch/pen/ZEZVayv" target="_blank">https://codepen.io/csatch/pen/ZEZVayv</a></p>
 
             <div class="dev-media-playback__example">
 
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
+                <div role="list" style="position:relative; display: inline-flex; gap: 24px">
 
-                        class CSPlayPauseButton extends HTMLElement {
+                    <div role="listitem">
 
-                            /** @type HTMLButtonElement */
-                            button = '';
-
-                            /** @type HTMLMediaElement */
-                            targetMedia = '';
-
-                            constructor () {
-                                super();
-                            }
-
-                            loadStyles () {
-                                let styles = document.createElement('style');
-                                styles.textContent = `
-                                    :is(cs-playpause, media-playback) > button,
-                                    button.cs-playpause__button {
-                                        --color: white;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        width: calc(42/16*1rem);
-                                        height: calc(42/16*1rem);
-                                        border-radius: 9999px;
-                                        position: absolute;
-                                        bottom: 1.2rem;
-                                        right: 0.75rem;
-                                        z-index: 4;
-                                        cursor: pointer;
-                                        background-color: #00000080;
-                                        border: 2px solid #FFFFFF70;
-                                        padding: 0;
-                                    }
-                                    :is(cs-playpause, media-playback) > button:hover,
-                                    button.cs-playpause__button:hover {
-                                        box-shadow: 0 0 0 1px white;
-                                        border-color: white !important;
-                                    }
-                                    :is(cs-playpause, media-playback) > button:focus-visible,
-                                    button.cs-playpause__button:focus-visible {
-                                        box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
-                                        border-color: white !important;
-                                    }
-                                    :is(cs-playpause, media-playback) > button::after,
-                                    button.cs-playpause__button::after {
-                                        content: '';
-                                        width: 100%;
-                                        height: 100%;
-                                        display: inline-block;
-                                        position: relative;
-                                        background: center center scroll no-repeat;
-                                        background-size: 14px;
-                                        pointer-events: none;
-                                        transform: translate(0, 0);
-                                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
-                                    }
-                                    :is(cs-playpause, media-playback) > button[aria-pressed="true"]::after,
-                                    button.cs-playpause__button[aria-pressed="true"]::after {
-                                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");
-                                        transform: translate(1px, 0);
-                                    }
-                                    :is(cs-playpause, media-playback) > button.replay::after,
-                                    button.cs-playpause__button.replay::after {
-                                        transform: scale(1.3);
-                                        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E");
-                                    }
-                                `;
-                                this.prepend(styles);
-                            }
-
-                            /* Create the button element if no child button element is present */
-                            createButton () {
-                                this.button = document.createElement('button');
-                                this.button.classList.add('cs-playpause__button', 'create-button');
-                                this.button.setAttribute('aria-label', 'Pause');
-                                this.button.setAttribute('aria-pressed', 'false');
-                                this.button.setAttribute('aria-controls', '');
-                            }
-
-                            /* Use the button element if a child button element is present */
-                            setButton () {
-                                this.button = this.querySelector('button');
-                                this.button.classList.add('cs-playpause__button', 'set-button');
-
-                                if ( ! this.button.hasAttribute('aria-label') ) {
-                                    this.button.setAttribute('aria-label', 'Pause');
-                                }
-                                if ( ! this.button.hasAttribute('aria-pressed') ) {
-                                    this.button.setAttribute('aria-pressed', 'false');
-                                }
-                                if ( this.button.innerHTML.trim() !== '' ) {
-                                    this.button.innerHTML = '';
-                                }
-                            }
-
-                            playPauseHandler ( btn = this.button, targetMedia = this.targetMedia ) {
-                                btn.classList.remove('replay');
-
-                                // Play
-                                if ( btn.classList.contains('is-paused') ) {
-                                    btn.classList.remove('is-paused');
-                                    btn.setAttribute('aria-pressed', 'false');
-                                    targetMedia.play();
-                                }
-
-                                // Pause
-                                else {
-                                    btn.classList.add('is-paused');
-                                    btn.setAttribute('aria-pressed', 'true');
-                                    targetMedia.pause();
-                                }
-                            }
-
-                            hasReducedMotion () {
-                                const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
-
-                                if ( hasReducedMotion ) this.playPauseHandler();
-                            }
-
-                            connectedCallback () {
-                                let hasButtonElement = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
-
-                                this.targetMedia = document.querySelector( this.getAttribute( 'target' ) );
-
-                                if ( this.targetMedia !== false && ! hasButtonElement ) {
-                                    this.createButton();
-                                    this.button.setAttribute('aria-controls', `${this.getAttribute('target')?.replace('#', '')}`);
-                                }
-
-                                else if ( this.targetMedia !== false && hasButtonElement ) {
-                                    this.setButton()
-                                    this.button.setAttribute('aria-controls', `${this.getAttribute('target')?.replace('#', '')}`);
-                                }
-
-                                /* HACK: Proof of Concept for a nested video element */
-                                console.log('Nested video element found:', this.targetMedia);
-                                if (
-                                    ( this.targetMedia == false || this.targetMedia == null )
-                                    && this.querySelector('video')
-                                ) {
-                                    this.targetMedia = this.querySelector('video');
-
-
-
-                                    let _videoID = `video-${Math.floor(Math.random() * 1000)}`
-
-                                    this.targetMedia.setAttribute('id', _videoID); // Give the video an ID if it doesn't have one
-
-                                    this.createButton()
-
-                                    this.button.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
-                                }
-
-                                if ( this.targetMedia instanceof HTMLMediaElement ) {
-
-                                    // Append the button to the custom element
-                                    this.appendChild(this.button); // NOTE: not needed if button is a child element
-
-                                    // Load styles
-                                    this.loadStyles();
-
-                                    // Detect reduced motion preference and pause the video if set
-                                    this.hasReducedMotion();
-
-                                    // Event listener for pointer & keyboard events
-                                    // Buttons are natively clickable and keyboard accessible:
-                                    // - pointer:click/tap
-                                    // - keyup:spacebar
-                                    // - keydown:enter
-                                    this.button.addEventListener('click', (ev) => {
-                                        ev.preventDefault();
-                                        this.playPauseHandler();
-                                    });
-
-                                    // Event listener for
-                                    this.targetMedia.onended = () => {
-                                        this.playPauseHandler();
-                                        this.button.classList.add('replay');
-                                    };
-
-                                } else {
-                                    console.error('The target video element with an ID does not exist');
-                                }
-                            }
-
-                        }
-
-                        //customElements.define('cs-playpause', CSPlayPauseButton);
-
-                        customElements.define('media-playback', CSPlayPauseButton);
-
-                    });
-                </script>
-
-                <div style="position:relative; display: inline-flex; gap: 24px">
-
-                    <div>
                         <div style="position: relative;">
-                            <media-playback target="#video"></media-playback>
+
+                            <media-playback target="waterfall"></media-playback>
+
                             <video
-                                id="video"
+                                id="waterfall"
                                 src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
                                 autoplay muted preload="auto">
                             </video>
+
                         </div>
-                        <p><small>The button is automatically created <br>because no child button element is provided.</small></p>
+
+                        <p>
+                            <small>The button is automatically created <br>because no child button element is provided.</small>
+                        </p>
+
                     </div>
 
-                    <div>
+                    <div role="listitem">
+
                         <div style="position: relative;">
 
                             <media-playback target="#video2">
-                                <button>...</button>
+                                <button>&#128128;</button>
                             </media-playback>
 
                             <video
                                 id="video2"
                                 src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
-                                autoplay muted preload="auto">
+                                muted preload="auto">
                             </video>
 
                         </div>
+
                         <p><small>Enhance the child element provided</small></p>
+
                     </div>
 
-                    <div>
+
+                    <div role="listitem">
                         <div style="position: relative;">
 
                             <media-playback>
@@ -265,7 +81,6 @@
                         </div>
                         <p><small>Has a nested video element. Enhance the child element provided</small></p>
                     </div>
-                </div>
 
                 </div>
 
@@ -282,1381 +97,308 @@
                         <li>media:playing</li>
                         <li>media:loading</li>
                     </ul>
+
                 </div>
 
             </div>
+
 		</section>
 
-		<hr>
-
-		<header class="container-2xl">
-			<kelp-subnav>
-				<nav class="navbar">
-					<a class="logo" href="#">Kelp UI</a>
-					<ul>
-						<li><a href="#">About</a></li>
-						<li><a href="#">Blog</a></li>
-						<li>
-							<details name="navbar">
-								<summary>Contact</summary>
-								<ul>
-									<li><a href="#">Help</a></li>
-									<li><a href="#">Phone</a></li>
-									<li><a href="#">Email</a></li>
-								</ul>
-							</details>
-						</li>
-						<li>
-							<details name="navbar">
-								<summary>Services</summary>
-								<ul>
-									<li><a href="#">Overview</a></li>
-									<li><a href="#">Consulting</a></li>
-									<li><a href="#">Coaching</a></li>
-									<li><a href="#">Courses</a></li>
-								</ul>
-							</details>
-						</li>
-						<li><a href="#">Blog</a></li>
-						<li><a href="#">Contact</a></li>
-						<li><a href="#">❤️</a></li>
-						<li><a href="#">🔍</a></li>
-						<li><a class="btn secondary size-s" href="#">Join</a></li>
-					</ul>
-				</nav>
-			</kelp-subnav>
-		</header>
-
-		<hr>
-
-		<header class="container-2xl">
-			<nav class="navbar no-wrap">
-				<a class="logo" href="#">Kelp UI</a>
-				<ul class="show-above-m">
-					<li><a href="#">About</a></li>
-					<li><a href="#">Blog</a></li>
-					<li><a href="#">Contact</a></li>
-				</ul>
-				<ul class="show-above-m">
-					<li><a href="#">❤️</a></li>
-					<li><a href="#">🔍</a></li>
-					<li><a class="btn secondary size-s" href="#">Join</a></li>
-				</ul>
-				<ul class="hide-above-m">
-					<li>
-						<button command="show-modal" commandfor="mobile-nav" class="plain">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>
-							Menu
-						</button>
-					</li>
-				</ul>
-			</nav>
-		</header>
-
-		<hr>
-
-		<header class="container-2xl">
-			<nav class="navbar no-wrap">
-				<a class="logo" href="#">Kelp UI</a>
-				<div class="menu">
-					<ul class="show-above-m">
-						<li><a href="#">About</a></li>
-						<li><a href="#">Blog</a></li>
-						<li><a href="#">Contact</a></li>
-					</ul>
-					<ul class="show-above-m">
-						<li><a href="#">❤️</a></li>
-						<li><a href="#">🔍</a></li>
-						<li><a class="btn secondary size-s" href="#">Join</a></li>
-					</ul>
-					<ul class="hide-above-m">
-						<li>
-							<button command="show-modal" commandfor="mobile-nav" class="plain">
-								<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/></svg>
-								Menu
-							</button>
-						</li>
-					</ul>
-				</div>
-			</nav>
-		</header>
-
-		<hr>
-
-		<header class="container-2xl">
-			<nav class="navbar no-wrap">
-				<a class="logo" href="#">Kelp UI</a>
-				<ul>
-					<li><a href="#">Blog</a></li>
-					<li><a href="#">About</a></li>
-					<li><a href="#">🔍</a></li>
-				</ul>
-			</nav>
-		</header>
-
-		<hr>
-
-		<header class="container-2xl">
-			<nav class="navbar">
-				<a class="logo" href="#">Kelp UI</a>
-				<div class="menu">
-					<ul>
-						<li><a href="#">About</a></li>
-						<li><a href="#">Blog</a></li>
-						<li><a href="#">Contact</a></li>
-						<li><a href="#">About</a></li>
-						<li><a href="#">Blog</a></li>
-						<li><a href="#">Contact</a></li>
-					</ul>
-
-					<ul>
-						<li><a href="#">❤️</a></li>
-						<li><a href="#">🔍</a></li>
-						<li><a class="btn secondary size-s" href="#">Join</a></li>
-					</ul>
-				</div>
-			</nav>
-		</header>
-
-		<div class="fill vivid secondary">
-			<header class="container-2xl">
-				<nav class="navbar">
-					<a class="logo" href="#">Kelp UI</a>
-					<ul>
-						<li><a href="#">About</a></li>
-						<li><a href="#">Blog</a></li>
-						<li><a href="#">Contact</a></li>
-						<li><a href="#">About</a></li>
-						<li><a href="#">Blog</a></li>
-						<li><a href="#">Contact</a></li>
-						<li><a href="#">❤️</a></li>
-						<li><a href="#">🔍</a></li>
-						<li><a class="btn muted size-s" href="#">Join</a></li>
-					</ul>
-				</nav>
-			</header>
-		</div>
-
-		<dialog id="mobile-nav" class="drawer" closedby="any">
-			<div class="action-header">
-				<h2>Nav Menu</h2>
-				<form method="dialog">
-					<button
-						class="plain"
-						aria-label="Close Modal"
-					>
-						&#x2715;
-					</button>
-				</form>
-			</div>
-
-			<div class="action-body nav-collapse">
-
-				<h3>Products &amp; Services</h3>
-				<ul class="list-unstyled stack gap-5xs">
-					<li><a href="#">About</a></li>
-					<li><a href="#">Blog</a></li>
-					<li><a href="#">Contact</a></li>
-				</ul>
-
-				<h3>Account</h3>
-				<ul class="list-unstyled stack gap-5xs">
-					<li><a href="#">❤️</a></li>
-					<li><a href="#">🔍</a></li>
-					<li><a class="btn secondary size-s" href="#">Join</a></li>
-				</ul>
-			</div>
-		</dialog>
-
-		<main class="margin-end-space" id="main" tabindex="-1">
-			<kelp-heading-anchors>
-				<div class="container">
-					<h1>Kelp</h1>
-					<p>This is the "kitchen sink" demo that includes all of the components in one spot.</p>
-
-					<p><a class="btn secondary size-l" href="https://kelpui.com">View the Docs &rarr;</a></p>
-
-
-					<kelp-toc heading="On this page..."></kelp-toc>
-
-
-					<h2>Dark &amp; Light Mode</h2>
-
-					<div class="dark margin-end-space padding-m">
-						<p>This content is always in dark mode!</p>
-
-						<ul class="list-inline">
-							<li><a href="#">Click Me</a></li>
-							<li><button class="muted secondary">Tap Me</button></li>
-						</ul>
-
-						<div class="callout outline">
-							<p>This content is always in dark mode!</p>
-
-							<ul class="list-inline">
-								<li><a href="#">Click Me</a></li>
-								<li><button>Tap Me</button></li>
-							</ul>
-						</div>
-					</div>
-
-					<div class="light margin-end-space padding-m">
-						<p>This content is always in light mode!</p>
-
-						<ul class="list-inline">
-							<li><a href="#">Click Me</a></li>
-							<li><button class="muted secondary">Tap Me</button></li>
-						</ul>
-
-						<div class="callout outline">
-							<p>This content is always in light mode!</p>
-
-							<ul class="list-inline">
-								<li><a href="#">Click Me</a></li>
-								<li><button>Tap Me</button></li>
-							</ul>
-						</div>
-					</div>
-
-
-					<h2>Containers</h2>
-				</div>
-
-					<div class="container-xs">
-						<div class="callout"><code>.container-xs</code></div>
-					</div>
-
-					<div class="container-s">
-						<div class="callout"><code>.container-s</code></div>
-					</div>
-
-					<div class="container-m">
-						<div class="callout"><code>.container</code> or <code>.container-m</code></div>
-					</div>
-
-					<div class="container-l">
-						<div class="callout"><code>.container-l</code></div>
-					</div>
-
-					<div class="container-xl">
-						<div class="callout"><code>.container-xl</code></div>
-					</div>
-
-					<div class="container-2xl">
-						<div class="callout"><code>.container-2xl</code></div>
-					</div>
-
-				<div class="container">
-
-					<div class="breakout margin-end-space">
-						<div class="callout"><code>.breakout (escapes parent container and goes full width)</code></div>
-					</div>
-
-
-					<h2>Cluster</h2>
-
-					<div class="cluster margin-end-space">
-						<div class="callout">Merlin</div>
-						<div class="callout">Gandalf</div>
-						<div class="callout">Radagast and his animals</div>
-						<div class="callout">Wand</div>
-						<div class="callout">Sword</div>
-						<div class="callout">Wizard Staff</div>
-						<div class="callout">The magical secrets of the universe</div>
-						<div class="callout">Potions</div>
-						<div class="callout">Cauldron</div>
-						<div class="callout">Supercalifragilisticexpialidocious</div>
-					</div>
-
-
-					<h2>Grid</h2>
-
-					<div class="grid margin-end-space">
-						<div class="item-third callout">.item-third</div>
-						<div class="item-two-thirds callout">.item-two-thirds</div>
-					</div>
-
-					<div class="grid margin-end-space">
-						<div class="item-fourth callout">.item-fourth</div>
-						<div class="item-three-fourths callout">.item-three-fourths</div>
-					</div>
-
-					<div class="grid margin-end-space">
-						<div class="item-half callout">.item-half</div>
-						<div class="item-half callout">.item-half</div>
-					</div>
-
-					<div class="grid margin-end-space">
-						<div class="item-fourth callout">.item-fourth</div>
-						<div class="item-half callout">.item-half</div>
-						<div class="item-fourth callout">.item-fourth</div>
-					</div>
-
-					<h3>Content Choreography</h3>
-
-					<div class="grid-m margin-end-space">
-						<div class="item-third callout">1</div>
-						<div class="item-third start-first callout">2</div>
-						<div class="item-third callout">3</div>
-					</div>
-
-					<div class="grid-m margin-end-space">
-						<div class="item-third callout">1</div>
-						<div class="item-third start-two-thirds callout">2</div>
-					</div>
-
-					<div class="grid-m margin-end-space">
-						<div class="item-third start-two-thirds callout">1</div>
-						<div class="item-third start-third callout">2</div>
-						<div class="item-third start-first callout">3</div>
-					</div>
-
-					<h3>Automatic Grid</h3>
-
-					<div class="grid-auto">
-						<div class="callout">Merlin</div>
-						<div class="callout">Gandalf</div>
-						<div class="callout">Radagast and his animals</div>
-						<div class="callout">Wand</div>
-						<div class="callout">Sword</div>
-						<div class="callout">Wizard Staff</div>
-						<div class="callout">The magical secrets of the universe</div>
-						<div class="callout">Potions</div>
-					</div>
-
-
-					<h2>Sidecar</h2>
-
-					<div class="sidecar margin-end-space">
-						<div class="callout" style="width: 9em">👋</div>
-						<div class="callout">Hello there!</div>
-					</div>
-
-					<div class="sidecar-end margin-end-space">
-						<div>
-							<label class="visually-hidden" for="search">Search this site</label>
-							<input type="text" id="search">
-						</div>
-						<div>
-							<button class="btn-block primary">Search</button>
-						</div>
-					</div>
-
-
-					<h2>Split</h2>
-
-					<div class="split margin-end-space">
-						<div class="callout">...</div>
-						<div class="callout">...</div>
-					</div>
-
-
-					<h2>Stack</h2>
-
-					<div class="stack margin-end-space">
-						<div class="callout">Merlin</div>
-						<div class="callout">Gandalf</div>
-						<div class="callout">Radagast</div>
-					</div>
-
-
-					<h2>Text</h2>
-
-					<p>
-						This is default text.<br>
-						<strong>This is bold...</strong><br>
-						<em>...and this is italic.</em><br>
-						<strong><em>This is what they look like together.</em></strong><br>
-						<del>This is strikethrough text.</del><br>
-						<mark>This text is highlighted.</mark><br>
-						Superscripts<sup>1</sup> and subscripts<sub>xyz</sub>
-					</p>
-
-
-					<h2>Links</h2>
-
-					<p>
-						<a href="#">Regular Link</a><br>
-						<a class="link-subtle" href="#">Subtle Link</a>
-					</p>
-
-
-					<h2>Headings</h2>
-
-					<h1>h1. Heading 1</h1>
-					<h2>h2. Heading 2</h2>
-					<h3>h3. Heading 3</h3>
-					<h4>h4. Heading 4</h4>
-					<h5>h5. Heading 5</h5>
-					<h6>h6. Heading 6</h6>
-					<h2 class="h4">This is an h2 heading styled like an h4</h2>
-
-
-					<h2>Lists</h2>
-
-					<ul>
-						<li>Whale</li>
-						<li>Shark</li>
-						<li>
-							Dolphin
-							<ul>
-								<li>Smart</li>
-								<li>Friend of humans</li>
-							</ul>
-						</li>
-					</ul>
-
-					<ol>
-						<li>Merlin</li>
-						<li>Radagast</li>
-						<li>
-							Gandalf
-							<ul>
-								<li>Wizard</li>
-								<li>Friend of the small folk</li>
-							</ul>
-						</li>
-					</ol>
-
-					<ul class="list-unstyled">
-						<li>Wand</li>
-						<li>Potions</li>
-						<li>Wizard Staff</li>
-					</ul>
-
-					<ul class="list-inline">
-						<li>Wand</li>
-						<li>Potions</li>
-						<li>Wizard Staff</li>
-					</ul>
-
-					<dl>
-					    <dt>Definition List</dt>
-					    <dd>Encloses a list of pairs of terms and descriptions. Common uses for this element are to implement a glossary or to display metadata (a list of key-value pairs).</dd>
-
-					    <dt>Here's another term</dt>
-					    <dd>And here's the definition that would go with it.</dd>
-					</dl>
-
-
-					<h2>Tables</h2>
-
-					<table>
-						<thead>
-							<tr>
-								<th scope="col">First Name</th>
-								<th scope="col">Last Name</th>
-								<th scope="col">Super Hero</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>Peter</td>
-								<td>Parker</td>
-								<td>Spiderman</td>
-							</tr>
-							<tr>
-								<td>Bruce</td>
-								<td>Wayne</td>
-								<td>Batman</td>
-							</tr>
-							<tr>
-								<td>Clark</td>
-								<td>Kent</td>
-								<td>Superman</td>
-							</tr>
-						</tbody>
-					</table>
-
-					<table class="table-striped">
-						<thead>
-							<tr>
-								<th scope="col">First Name</th>
-								<th scope="col">Last Name</th>
-								<th scope="col">Super Hero</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>Peter</td>
-								<td>Parker</td>
-								<td>Spiderman</td>
-							</tr>
-							<tr>
-								<td>Bruce</td>
-								<td>Wayne</td>
-								<td>Batman</td>
-							</tr>
-							<tr>
-								<td>Clark</td>
-								<td>Kent</td>
-								<td>Superman</td>
-							</tr>
-						</tbody>
-					</table>
-
-					<table class="table-striped secondary">
-						<thead>
-							<tr>
-								<th scope="col">First Name</th>
-								<th scope="col">Last Name</th>
-								<th scope="col">Super Hero</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>Peter</td>
-								<td>Parker</td>
-								<td>Spiderman</td>
-							</tr>
-							<tr>
-								<td>Bruce</td>
-								<td>Wayne</td>
-								<td>Batman</td>
-							</tr>
-							<tr>
-								<td>Clark</td>
-								<td>Kent</td>
-								<td>Superman</td>
-							</tr>
-						</tbody>
-					</table>
-
-					<div class="scroll-horizontal margin-end-space">
-					    <table>
-					        <thead>
-					            <tr>
-					                <th scope="col">First</th>
-					                <th scope="col">Last</th>
-					                <th scope="col">Hero Name</th>
-					                <th scope="col">Super Power</th>
-					                <th scope="col">Costume Color</th>
-					            </tr>
-					        </thead>
-					        <tbody>
-					            <tr>
-					                <td>Peter</td>
-					                <td>Parker</td>
-					                <td>Spiderman</td>
-					                <td>Spider Stuff</td>
-					                <td>Red and Blue</td>
-					            </tr>
-					            <tr>
-					                <td>Bruce</td>
-					                <td>Wayne</td>
-					                <td>Batman</td>
-					                <td>Bat Stuff</td>
-					                <td>Black</td>
-					            </tr>
-					            <tr>
-					                <td>Tony</td>
-					                <td>Stark</td>
-					                <td>Ironman</td>
-					                <td>Iron Stuff</td>
-					                <td>Red and Yellow</td>
-					            </tr>
-					        </tbody>
-					    </table>
-					</div>
-
-
-					<h2>Blockquote</h2>
-
-					<blockquote>
-						Someone once said something so important, it was deemed worthy of repeating here in the form of a blockquote. This is that blockquote.
-						<cite>- Someone Important</cite>
-					</blockquote>
-
-					<blockquote class="secondary">
-						Someone once said something so important, it was deemed worthy of repeating here in the form of a blockquote. This is that blockquote.
-						<cite>- Someone Important</cite>
-					</blockquote>
-
-
-					<h2>Code</h2>
-
-					Inline code: <code>.js-example</code>.
-
-					<pre><code>/* Preformatted Text */
-	.js-example {
-		color: #272727;
-		background: #ffffff;
-	}</code></pre>
-
-
-					<h2>Images</h2>
-
-					<img
-						height="960"
-						width="1440"
-						alt="A gorgeous jellyfish drifting in the ocean"
-						src="https://kelpui.com/img/docs/jellyfish.jpg"
-					>
-
-					<figure>
-						<img
-							height="960"
-							width="1440"
-							alt="A gorgeous jellyfish drifting in the ocean"
-							src="https://kelpui.com/img/docs/jellyfish.jpg"
-						>
-						<figcaption>Ran into this big fella on my last snorkeling trip (not really!)</figcaption>
-					</figure>
-
-
-					<h2>Multimedia</h2>
-
-					<video controls src="https://36100d17-642b-427f-8851-5c2f94e1df79.mdnplay.dev/shared-assets/videos/flower.mp4"></video>
-
-					<audio controls="controls" src="https://cdn.gomakethings.com/podcast/episode148_bye-bye-build-steps.mp3"></audio>
-
-					<iframe class="aspect-ratio-16x9" width="560" height="315" src="https://www.youtube.com/embed/u3aauiR9M88?si=Y9nr4jGId4IrKKDB" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
-
-					<h2>Dividers</h2>
-
-					<hr>
-
-
-					<h2>Buttons</h2>
-
-					<p class="cluster align-end">
-						<button>Default Button</button>
-						<button class="size-xl">Large Button</button>
-						<button class="size-xs">Small Button</button>
-					</p>
-
-					<p class="cluster">
-						<button>Neutral</button>
-						<button class="primary">Primary</button>
-						<button class="secondary">Secondary</button>
-						<button class="success">Success</button>
-						<button class="danger">Danger</button>
-						<button class="warning">Warning</button>
-					</p>
-
-					<p class="cluster">
-						<button class="muted">Neutral</button>
-						<button class="muted primary">Primary</button>
-						<button class="muted secondary">Secondary</button>
-						<button class="muted success">Success</button>
-						<button class="muted danger">Danger</button>
-						<button class="muted warning">Warning</button>
-					</p>
-
-					<p class="cluster">
-						<button class="outline">Neutral</button>
-						<button class="outline primary">Primary</button>
-						<button class="outline secondary">Secondary</button>
-						<button class="outline success">Success</button>
-						<button class="outline danger">Danger</button>
-						<button class="outline warning">Warning</button>
-					</p>
-
-					<p class="stack align-center">
-						<button class="btn-block">Block Button</button>
-						<button class="btn-block">Block Button</button>
-					</p>
-
-					<p class="cluster align-center">
-						<a class="btn" href="#">This is a Link</a>
-						<button class="btn-link">This is a button</button>
-						<button class="btn-link link-subtle">So is this</button>
-					</p>
-
-
-					<h2>Forms</h2>
-
-					<div class="stack margin-end-space">
-						<div>
-							<label for="greeting">What's your preferred greeting?</label>
-							<input type="text" id="greeting" name="greeting">
-						</div>
-
-						<div>
-							<label for="vacation">What's your favorite vacation spot?</label>
-							<textarea type="text" id="vacation" name="vacation"></textarea>
-						</div>
-
-						<div>
-							<label for="password">Password</label>
-							<input type="password" id="password" name="password">
-						</div>
-
-						<div>
-							<label for="email">Email</label>
-							<input type="email" id="email" name="email">
-						</div>
-
-						<div>
-							<label for="tel">Telephone</label>
-							<input type="tel" id="tel" name="tel">
-						</div>
-
-						<div>
-							<label for="num">Number</label>
-							<input type="num" id="num" name="num">
-						</div>
-
-						<div>
-							<label for="url">URL</label>
-							<input type="url" id="url" name="url">
-						</div>
-
-						<label>
-							<input type="checkbox" name="awesome">
-							I love Pixar movies
-						</label>
-
-						<fieldset>
-							<legend>What's your favorite Pixar movie?</legend>
-
-							<label>
-								<input type="radio" name="movie" value="up">
-								Up!
-							</label>
-							<label>
-								<input type="radio" name="movie" value="wall-e">
-								WALL-E
-							</label>
-							<label>
-								<input type="radio" name="movie" value="toy-story">
-								Toy Story
-							</label>
-						</fieldset>
-
-						<div>
-							<label for="wizard">Who is the best wizard?</label>
-							<select id="wizard" name="wizard">
-								<option value="merlin">Merlin the Wise</option>
-								<option value="gandalf">Gandalf the Gray</option>
-								<option value="radagast">Radagast the Brown</option>
-							</select>
-						</div>
-
-						<div>
-							<label for="color">Pick your favorite color</label>
-							<input type="color" id="color" name="color">
-						</div>
-
-						<div>
-							<label for="start">When will you arrive?</label>
-							<input type="date" id="start" name="start">
-						</div>
-
-						<div>
-							<label for="reservation">Reservation Time</label>
-							<input type="time" id="reservation" name="reservation">
-						</div>
-
-						<div>
-							<label for="reservation">Book an Appointment</label>
-							<input type="datetime-local" id="appointment" name="appointment">
-						</div>
-					</div>
-
-					<h3>Form Layout</h3>
-
-					<div class="grid-m margin-end-space">
-						<div class="item-half">
-							<label for="username">Name</label>
-							<input type="text" id="#username">
-						</div>
-						<div class="item-half">
-							<label for="reservation_date">Reservation Date</label>
-							<input type="date" id="reservation_date">
-						</div>
-					</div>
-
-					<h3>Readonly &amp; Disabled</h3>
-
-					<div class="stack margin-end-space">
-						<div>
-							<label for="greeting-readonly">What's your preferred greeting (readonly)?</label>
-							<input
-								type="text"
-								id="greeting-readonly"
-								name="greeting"
-								value="Hey there!"
-								readonly
-							>
-						</div>
-
-						<div>
-							<label for="vacation-readonly">What's your favorite vacation spot (readonly)?</label>
-							<textarea
-								type="text"
-								id="vacation-readonly"
-								name="vacation"
-								readonly
-							>Anywhere with sun and sand!</textarea>
-						</div>
-
-						<label>
-							<input type="checkbox" name="awesome" disabled>
-							I love Pixar movies (disabled)
-						</label>
-
-						<label>
-							<input type="checkbox" name="awesome" checked disabled>
-							I love Pixar movies (disabled)
-						</label>
-					</div>
-
-					<h3>Implicit Labels</h3>
-
-					<div class="stack margin-end-space">
-						<label>
-							What's your preferred greeting?
-							<input type="text" name="greeting">
-						</label>
-
-						<label>
-							Who is the best wizard?
-							<select name="wizard">
-								<option value="merlin">Merlin the Wise</option>
-								<option value="gandalf">Gandalf the Gray</option>
-								<option value="radagast">Radagast the Brown</option>
-							</select>
-						</label>
-
-						<label>
-							What's your favorite vacation spot?
-							<textarea type="text" name="vacation"></textarea>
-						</label>
-					</div>
-
-
-					<h2>Avatar</h2>
-
-					<p>
-						<img
-							class="avatar"
-							alt="A headshot of a white male in a purple gingham shirt with a shaved head and stubble."
-							src="https://gomakethings.com/img/chris-ferdinandi-high-res.jpg"
-							width="175"
-							height="175"
-						>
-					</p>
-
-
-					<h2>Badges</h2>
-
-					<p class="cluster">
-						<span class="badge">Neutral</span>
-						<span class="badge primary">Primary</span>
-						<span class="badge secondary">Secondary</span>
-						<span class="badge success">Success</span>
-						<span class="badge danger">Danger</span>
-						<span class="badge warning">Warning</span>
-					</p>
-
-					<p class="cluster">
-						<span class="badge muted">Neutral</span>
-						<span class="badge primary muted">Primary</span>
-						<span class="badge secondary muted">Secondary</span>
-						<span class="badge success muted">Success</span>
-						<span class="badge danger muted">Danger</span>
-						<span class="badge warning muted">Warning</span>
-					</p>
-
-					<p class="cluster">
-						<span class="badge outline">Neutral</span>
-						<span class="badge primary outline">Primary</span>
-						<span class="badge secondary outline">Secondary</span>
-						<span class="badge success outline">Success</span>
-						<span class="badge danger outline">Danger</span>
-						<span class="badge warning outline">Warning</span>
-					</p>
-
-
-					<h2>Callouts</h2>
-
-					<div class="stack margin-end-space">
-						<div class="callout">Neutral Callout</div>
-						<div class="callout primary">Primary Callout</div>
-						<div class="callout secondary">Secondary Callout</div>
-						<div class="callout success">Success Callout</div>
-						<div class="callout danger">Danger Callout</div>
-						<div class="callout warning">Warning Callout</div>
-					</div>
-
-					<div class="stack margin-end-space">
-						<div class="callout vivid">Neutral Callout</div>
-						<div class="callout vivid primary">Primary Callout</div>
-						<div class="callout vivid secondary">Secondary Callout</div>
-						<div class="callout vivid success">Success Callout</div>
-						<div class="callout vivid danger">Danger Callout</div>
-						<div class="callout vivid warning">Warning Callout</div>
-					</div>
-
-					<div class="stack margin-end-space">
-						<div class="callout outline">Neutral Callout</div>
-						<div class="callout outline primary">Primary Callout</div>
-						<div class="callout outline secondary">Secondary Callout</div>
-						<div class="callout outline success">Success Callout</div>
-						<div class="callout outline danger">Danger Callout</div>
-						<div class="callout outline warning">Warning Callout</div>
-					</div>
-
-					<div class="callout success sidecar margin-end-space">
-						<div class="margin-start-5xs">
-							<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098zM8 4c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995A.905.905 0 0 1 8 4m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></svg>
-						</div>
-						<div><strong>Hey!</strong> You're awesome!</div>
-					</div>
-
-
-					<h2>Details &amp; Summary</h2>
-
-					<details class="margin-end-space">
-						<summary><strong>The Toggle</strong></summary>
-						The content.
-					</details>
-
-					<div class="margin-end-space">
-						<details>
-							<summary><strong>Callout Content</strong></summary>
-							<div class="callout">
-								The content.
-							</div>
-						</details>
-					</div>
-
-					<div class="margin-end-space">
-						<div class="callout outline">
-							<details>
-								<summary><strong>Callout Wrapper</strong></summary>
-								The content.
-							</details>
-						</div>
-					</div>
-
-					<h3>Details Groups</h3>
-
-					<div class="divided">
-						<details>
-							<summary><strong>Merlin</strong></summary>
-							The wizard...
-						</details>
-
-						<details>
-							<summary><strong>Gandalf</strong></summary>
-							The gray...
-						</details>
-
-						<details>
-							<summary><strong>Radagast</strong></summary>
-							The dude who talks to animals...
-						</details>
-					</div>
-
-
-					<h2>Table of Contents</h2>
-
-					<p>Comes in two forms&mdash;simple...</p>
-
-					<kelp-toc class="stack margin-end-space" heading="On this page..."></kelp-toc>
-
-					<p>And nested...</p>
-
-					<kelp-toc nested class="stack margin-end-space" list-type="ol"></kelp-toc>
-
-
-
-
-					<h2>Skeleton</h2>
-
-					<div class="sidecar margin-end-space">
-						<div>
-							<div class="skeleton" style="--height: 8em; --width: 8em; --border-radius: 50%;"></div>
-						</div>
-						<div class="stack">
-							<div class="skeleton" style="--width: 8em;"></div>
-							<div class="skeleton"></div>
-							<div class="skeleton" style="--width: 12em;"></div>
-							<div class="skeleton" style="--height: 2em; --width: 6em;"></div>
-						</div>
-					</div>
-
-
-					<h2>Visibility</h2>
-
-					<p>
-						<button>
-							<span class="visually-hidden">
-								Favorite This
-							</span>
-							<span aria-hidden="true">
-								❤️
-							</span>
-						</button>
-					</p>
-
-					<a
-						class="visually-hidden-focusable"
-						href="#"
-					>
-						Skip to Content
-					</a>
-
-
-
-					<h2>Aspect Ratio</h2>
-
-					<p>
-						<img
-							class="aspect-ratio-1x1"
-							height="250"
-							width="250"
-							alt="A gorgeous jellyfish drifting in the ocean"
-							src="https://kelpui.com/img/docs/jellyfish.jpg"
-						>
-					</p>
-
-					<iframe
-						class="aspect-ratio-16x9"
-						width="560"
-						height="315"
-						src="https://www.youtube.com/embed/u3aauiR9M88?si=Y9nr4jGId4IrKKDB"
-						title="YouTube video player"
-						frameborder="0"
-						referrerpolicy="strict-origin-when-cross-origin"
-						allowfullscreen
-					></iframe>
-
-
-					<h2>Fills</h2>
-
-					<div class="stack margin-end-space">
-						<div class="fill">.fill</div>
-						<div class="fill primary">.fill .primary</div>
-						<div class="fill secondary">.fill .secondary</div>
-						<div class="fill success">.fill .success</div>
-						<div class="fill danger">.fill .danger</div>
-						<div class="fill warning">.fill .warning</div>
-					</div>
-
-					<div class="stack margin-end-space">
-						<div class="fill vivid">.fill .vivid</div>
-						<div class="fill primary vivid">.fill .primary .vivid</div>
-						<div class="fill secondary vivid">.fill .secondary .vivid</div>
-						<div class="fill success vivid">.fill .success .vivid</div>
-						<div class="fill danger vivid">.fill .danger .vivid</div>
-						<div class="fill warning vivid">.fill .warning .vivid</div>
-					</div>
-
-
-					<h2>Text Modifiers</h2>
-
-					<p class="stack">
-						<span class="text-capitalize">Hey there, friend!</span>
-						<span class="text-uppercase">Hey there, friend!</span>
-						<span class="text-lowercase">Hey there, friend!</span>
-					</p>
-
-					<p class="text-center">This text is centered.</p>
-					<p class="text-end">This text is aligned to the end.</p>
-					<p class="text-muted">I am muted.</p>
-
-					<p class="size-2xs">text .size.2xs</p>
-					<p class="size-xs">text .size.xs</p>
-					<p class="size-s">text .size.s</p>
-					<p class="size-l">text .size.l</p>
-					<p class="size-xl">text .size.xl</p>
-					<p class="size-2xl">text .size.2xl</p>
-					<p class="size-3xl">text .size.3xl</p>
-					<p class="size-4xl">text .size.4xl</p>
-					<p class="size-5xl">text .size.5xl</p>
-					<p class="size-6xl">text .size.6xl</p>
-
-					<div class="stack margin-end-space">
-						<span class="text-color">.text-color</span>
-						<span class="text-color primary">.text-color .primary</span>
-						<span class="text-color secondary">.text-color .secondary</span>
-						<span class="text-color success">.text-color .success</span>
-						<span class="text-color danger">.text-color .danger</span>
-						<span class="text-color warning">.text-color .warning</span>
-					</div>
-
-					<p class="font-secondary">This is regular text that's using the secondary font, usually applied to headings.</p>
-					<h3 class="font-primary">This is a heading that's using the primary font, usually used for body text.</h3>
-
-
-					<h2>Toggle Password</h2>
-
-					<div class="stack">
-
-						<!-- A checkbox toggle -->
-						<kelp-toggle-pw>
-							<label for="password-1">Password</label>
-							<input id="password-1" name="password" type="password" value="test1234">
-
-							<label>
-								<input toggle type="checkbox">
-								Show password
-							</label>
-						</kelp-toggle-pw>
-
-						<!-- A button toggle -->
-						<kelp-toggle-pw>
-							<label for="password-2">Password</label>
-							<div class="sidecar-end">
-								<div>
-									<input id="password-2" name="password" type="password" value="test1234">
-								</div>
-								<div>
-									<button class="btn-link link-subtle" toggle aria-label="show-password">
-										<span is-hidden><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/></svg></span>
-										<span is-visible><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/><path d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z"/></svg></span>
-									</button>
-								</div>
-							</div>
-						</kelp-toggle-pw>
-
-						<!-- Show password fields by default -->
-						<kelp-toggle-pw visible>
-							<label for="password-3">Password</label>
-							<div class="sidecar-end">
-								<div>
-									<input id="password-3" name="password" type="password" value="test1234">
-								</div>
-								<div>
-									<button class="btn-link link-subtle" toggle aria-label="show-password">
-										<span is-hidden><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/></svg></span>
-										<span is-visible><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/><path d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z"/></svg></span>
-									</button>
-								</div>
-							</div>
-						</kelp-toggle-pw>
-
-
-						<h2>Tabs</h2>
-
-						<kelp-tabs>
-							<ul class="list-inline" tabs>
-								<li><a href="#wizard1">Wizard</a></li>
-								<li><a href="#sorcerer1">Sorcerer</a></li>
-								<li><a href="#druid1">Druid</a></li>
-							</ul>
-
-							<div id="wizard1">
-								Wizards gain their magic through study... <button>Cool</button>
-							</div>
-
-							<div id="sorcerer1">
-								Sorcerers get their power from an otherworldly being... <button>Meh</button>
-							</div>
-
-							<div id="druid1">
-								Druids get their power from nature... <button>The Best</button>
-							</div>
-						</kelp-tabs>
-
-						<h3>Vertical Orientation</h3>
-
-						<div class="margin-end-space">
-							<kelp-tabs class="secondary" start="#druid2" vertical>
-								<div class="sidecar">
-									<ul class="list-unstyled stack gap-4xs secondary" tabs>
-										<li><a href="#wizard2">Wizard</a></li>
-										<li><a href="#sorcerer2">Sorcerer</a></li>
-										<li><a href="#druid2">Druid</a></li>
-									</ul>
-									<div>
-										<div id="wizard2">
-											Wizards gain their magic through study...
-										</div>
-
-										<div id="sorcerer2">
-											Sorcerers get their power from an otherworldly being...
-										</div>
-
-										<div id="druid2">
-											Druids get their power from nature...
-										</div>
-									</div>
-								</div>
-							</kelp-tabs>
-						</div>
-
-
-						<h2>Modals</h2>
-
-						<p class="cluster">
-							<button commandfor="modal" command="show-modal">Show Modal</button>
-							<button commandfor="modal-tall" command="show-modal">Show Autoscrolling Modal</button>
-							<button commandfor="modal-tall-body" command="show-modal">Show Autoscrolling Modal + Body</button>
-						</p>
-
-						<h3>Drawers</h3>
-
-						<p class="cluster">
-							<button commandfor="drawer-start" command="show-modal">Show Drawer Start</button>
-							<button commandfor="drawer" command="show-modal">Show Drawer End</button>
-							<button commandfor="drawer-top" command="show-modal">Show Drawer Top</button>
-							<button commandfor="drawer-bottom" command="show-modal">Show Drawer Bottom</button>
-						</p>
-
-					</div>
-
-				</div>
-
-				<dialog id="modal" closedby="any">
-					<div class="action-header">
-						<h2>This is a modal heading</h2>
-						<form>
-							<button class="plain" formmethod="dialog" aria-label="Close Modal">&#x2715;</button>
-						</form>
-					</div>
-					<p>Here's some body text inside the modal.</p>
-					<form method="dialog">
-						<button>Close</button>
-					</form>
-				</dialog>
-
-				<dialog id="modal-tall" closedby="any">
-					<div class="action-header">
-						<h2>This is a modal heading</h2>
-						<form>
-							<button class="plain" formmethod="dialog" aria-label="Close Modal">&#x2715;</button>
-						</form>
-					</div>
-					<p>Here's some body text inside the modal.</p>
-					<p>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-					</p>
-					<form method="dialog">
-						<button>Close</button>
-					</form>
-				</dialog>
-
-				<dialog id="modal-tall-body" closedby="any">
-					<div class="action-header">
-						<h2>This is a modal heading</h2>
-						<form>
-							<button class="plain" formmethod="dialog" aria-label="Close Modal">&#x2715;</button>
-						</form>
-					</div>
-					<div class="action-body">
-						<p>Here's some body text inside the modal.</p>
-						<p>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-							.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>.<br>
-						</p>
-					</div>
-					<form class="action-footer" method="dialog">
-						<button>Close</button>
-					</form>
-				</dialog>
-
-				<dialog class="drawer" id="drawer" closedby="any">
-					<div class="action-header">
-						<h2>This is a modal heading</h2>
-						<form>
-							<button class="plain" formmethod="dialog" aria-label="Close Modal">&#x2715;</button>
-						</form>
-					</div>
-					<p>Here's some body text inside the modal.</p>
-					<form method="dialog">
-						<button>Close</button>
-					</form>
-				</dialog>
-
-				<dialog class="drawer-start" id="drawer-start" closedby="any">
-					<div class="action-header">
-						<h2>This is a modal heading</h2>
-						<form>
-							<button class="plain" formmethod="dialog" aria-label="Close Modal">&#x2715;</button>
-						</form>
-					</div>
-					<p>Here's some body text inside the modal.</p>
-					<form method="dialog">
-						<button>Close</button>
-					</form>
-				</dialog>
-
-				<dialog class="drawer-top" id="drawer-top" closedby="any">
-					<div class="action-header">
-						<h2>This is a modal heading</h2>
-						<form>
-							<button class="plain" formmethod="dialog" aria-label="Close Modal">&#x2715;</button>
-						</form>
-					</div>
-					<p>Here's some body text inside the modal.</p>
-					<form method="dialog">
-						<button>Close</button>
-					</form>
-				</dialog>
-
-				<dialog class="drawer-bottom" id="drawer-bottom" closedby="any">
-					<div class="action-header">
-						<h2>This is a modal heading</h2>
-						<form>
-							<button class="plain" formmethod="dialog" aria-label="Close Modal">&#x2715;</button>
-						</form>
-					</div>
-					<p>Here's some body text inside the modal.</p>
-					<form method="dialog">
-						<button>Close</button>
-					</form>
-				</dialog>
-
-			</kelp-heading-anchors>
-		</main>
+        <!-- START Component Styles -->
+<style>
+    :is(cs-playpause, media-playback) > button,
+    button.cs-playpause__button {
+        --color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(42/16*1rem);
+        height: calc(42/16*1rem);
+        border-radius: 9999px;
+        position: absolute;
+        bottom: 1.2rem;
+        right: 0.75rem;
+        z-index: 4;
+        cursor: pointer;
+        background-color: #00000080;
+        border: 2px solid #FFFFFF70;
+        padding: 0;
+    }
+    :is(cs-playpause, media-playback) > button:hover,
+    button.cs-playpause__button:hover {
+        box-shadow: 0 0 0 1px white;
+        border-color: white !important;
+    }
+    :is(cs-playpause, media-playback) > button:focus-visible,
+    button.cs-playpause__button:focus-visible {
+        box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
+        border-color: white !important;
+    }
+    :is(cs-playpause, media-playback) > button::after,
+    button.cs-playpause__button::after {
+        content: '';
+        width: 100%;
+        height: 100%;
+        display: inline-block;
+        position: relative;
+        background: center center scroll no-repeat;
+        background-size: 14px;
+        pointer-events: none;
+        transform: translate(0, 0);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
+    }
+    :is(cs-playpause, media-playback) > button[aria-pressed="true"]::after,
+    button.cs-playpause__button[aria-pressed="true"]::after {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");
+        transform: translate(1px, 0);
+    }
+    :is(cs-playpause, media-playback) > button.replay::after,
+    button.cs-playpause__button.replay::after {
+        transform: scale(1.3);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E");
+    }
+</style>
+<!-- END Component Styles -->
+
+<!-- START Component Definition -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+class mediaPlayback extends HTMLElement {
+
+    /**
+     * Class Fields
+     *
+     * @type { string | boolean }             targetAttr      The target attribute value or false if not set.
+     * @type { HTMLButtonElement | boolean }  playbackButton  The play/pause button element or false if not set.
+     * @type { HTMLMediaElement | boolean }   targetMedia     The targeted HTMLMediaElement or false if not found.
+     */
+
+    // The target attribute is a string used to select the target HTMLMediaElement by ID.
+    targetAttr = null;
+
+    // User provided or generated <button> element for the play/pause ("Playback") button.
+    playbackButton = null;
+
+    // The audio or video HTMLMediaElement that needs to be controlled.
+    targetMedia = null;
+
+
+    /**
+     *  When connected to the DOM, run the init() method when ready.
+     */
+
+    connectedCallback () {
+        if ( typeof ready === "function" ) {
+            ready(this);
+        } else {
+            this.init();
+        }
+    }
+
+
+    /**
+     * When initialized, do a great many things.
+     *  1. Don't run if already initialized
+     *  2. Get settings
+     *  3. Render
+     *  4. On "Ready" updates
+     */
+
+    init () {
+
+        /*
+            1. Don't run if already initialized
+        */
+        if ( this.hasAttribute( 'is-ready' ) ) return;
+
+
+        /*
+            2. Get settings
+        */
+
+        // 2a. Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
+        this.targetAttr = this.getAttribute( 'target' ) ?? false;
+
+        let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
+        let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
+
+        // 2b. Because this is a HTML Web Component the user is expected to provide a child <button> element
+        // for the play/pause ("Playback") button. If no button is provided, we will create one later.
+        this.playbackButton = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
+
+        // 3b. Check the target attribute exists and it can be used to select a HTMLMediaElement.
+        this.targetMedia = ( this.targetAttr !== false && document.querySelector( _mediaSelector ) instanceof HTMLMediaElement) ? document.querySelector( _mediaSelector ) : false;
+
+        /*
+            3. Render
+        */
+
+        // NOTE: If render() does not succeed, then run the code inside the block.
+        if ( !this.render() ) {
+            if ( typeof debug === "function" ) {
+                debug(this, 'The target video element with an ID does not exist');
+            } else {
+                this.init();
+            }
+            return;
+        }
+
+        /*
+            4. Ready
+        */
+        if ( typeof emit === "function" ) {
+            emit(this, 'media-playback', 'ready');
+        }
+
+        this.setAttribute('is-ready', '');
+    }
+
+
+    /**
+     * Render the component's HTML structure.
+     *  1. Check for a nested video or audio element and set an ID attribute.
+     *  2. Use the button element if a child button element is present.
+     *  2b. OR Create the button element if no child button element is present.
+     *  3. If we have a valid targetMedia, append the button and add event listeners.
+     */
+
+    render () {
+
+        /*
+            1. Check for a nested video or audio element and set an ID attribute.
+        */
+        if ( this.querySelector('video, audio') instanceof HTMLMediaElement) {
+
+            let _targetMediaID = `video-${Math.floor(Math.random() * 1000)}`;
+
+            this.targetMedia = this.querySelector('video, audio');
+
+            // Ensure the video has an ID for aria-controls
+            this.targetMedia.setAttribute('id', _targetMediaID);
+        }
+
+        /*
+            2. Use the button element if a child button element is present
+        */
+        if ( ( this.targetAttr && this.targetMedia ) && this.querySelector('button') ) {
+            this.setPlayBackButton();
+        }
+
+        /*
+            2b. OR Create the button element if no child button element is present
+        */
+        else if ( this.targetMedia !== false && ! this.querySelector('button') ) {
+            this.createPlayBackButton();
+        }
+
+        /*
+            3. If we have a valid targetMedia, append the button and add event listeners
+        */
+        if ( this.targetMedia instanceof HTMLMediaElement ) {
+
+            // Append the button to the custom element
+            this.appendChild(this.playbackButton); // NOTE: not needed if button is a child element
+
+            this.hasReducedMotion();
+
+            this.onPointerEvents();
+
+            this.onMediaEnded();
+
+        } else {
+            return false;
+        }
+
+        return true;
+
+    }
+
+
+
+    /**
+     * Helper and Event Methods.
+     */
+
+    getMediaState () {
+        if (this.targetMedia.ended) return "ended";
+        if (this.targetMedia.paused) return "paused";
+        return "playing";
+    }
+
+    setPlayBackButton () {
+        let mediaState = this.getMediaState();
+        let setPressedState = ( mediaState === 'playing' ) ? 'false' : 'true';
+
+        this.playbackButton = this.querySelector('button');
+        this.playbackButton.classList.add('cs-playpause__button', 'set-button');
+
+        if ( ! this.playbackButton.hasAttribute('aria-label') ) {
+            this.playbackButton.setAttribute('aria-label', 'Pause');
+        }
+        if ( ! this.playbackButton.hasAttribute('aria-pressed') ) {
+            this.playbackButton.setAttribute('aria-pressed', setPressedState);
+        }
+        if ( this.playbackButton.innerHTML.trim() !== '' ) {
+            this.playbackButton.innerHTML = '';
+        }
+        this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
+    }
+
+    createPlayBackButton () {
+        this.playbackButton = document.createElement('button');
+        this.playbackButton.classList.add('cs-playpause__button', 'create-button');
+        this.playbackButton.setAttribute('aria-label', 'Pause');
+        this.playbackButton.setAttribute('aria-pressed', 'false');
+        this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
+    }
+
+    onPointerEvents () {
+        this.playbackButton.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            this.playPauseHandler();
+        });
+    }
+
+    onMediaEnded () {
+        // Event listener for
+        this.targetMedia.addEventListener('ended', (ev) => {
+            this.playPauseHandler();
+            this.playbackButton.classList.add('replay');
+        });
+    }
+
+    hasReducedMotion () {
+        const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
+
+        if ( hasReducedMotion ) this.playPauseHandler();
+    }
+
+    playPauseHandler ( btn = this.playbackButton, media = this.targetMedia ) {
+        btn.classList.remove('replay');
+
+        // Play
+        if ( btn.getAttribute('aria-pressed') == 'true' ) {
+            btn.classList.remove('is-paused');
+            btn.setAttribute('aria-pressed', 'false');
+            media.play();
+        }
+
+        // Pause
+        else {
+            btn.classList.add('is-paused');
+            btn.setAttribute('aria-pressed', 'true');
+            media.pause();
+        }
+    }
+
+}
+
+customElements.define( 'media-playback', mediaPlayback );
+
+});
+</script>
+<!-- END Component Definition -->
 
 		<script type="module">
 			document.addEventListener('kelp:debug', (event) => {
