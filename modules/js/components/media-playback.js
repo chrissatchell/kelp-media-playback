@@ -50,41 +50,45 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
      *  4. On "Ready" updates
      */
 
-    init () {
+    async init () {
 
-        /*
-            Don't run if already initialized
-        */
-
+        // Don't run if already initialized
         if ( this.hasAttribute( 'is-ready' ) ) return;
 
         // Setup fields
         this.setup();
 
-        /*
-            Wait for the target media to be ready before continuing
-            This is important because we need to know the media state (playing, paused, ended)
-            before we can set up the play/pause button correctly.
-            We use the waitForMediaReady() method which returns a promise that resolves when the media is ready.
-        */
+        // Media is ready to play
+        await this.videoReady( this.targetMedia );
+        this.mediaStatus.isReady = true;
 
-        this.waitForMediaReady().then( mediaStatus => {
+        try {
 
-            // Reader or fail
-            if ( ! this.render() ) {
-                if (typeof debug === "function") {
-                    debug(this, 'Render failed: target media did not initialize properly.');
-                }
-                return;
+            // Media is playing
+            await this.videoPlaying( this.targetMedia, 10 );
+            this.mediaStatus.isPlaying = true;
+
+        } catch ( err ) {
+
+            // Media is not playing
+            this.mediaStatus.isPlaying = false;
+
+        }
+
+        // Reader
+        if ( ! this.render() ) {
+            if ( typeof debug === 'function' ) {
+                debug( this, 'Render failed' );
             }
+            return;
+        }
 
-            // Ready to go!
-            if ( typeof emit === "function" ) {
-                emit( this, 'media-playback', 'ready' );
-            }
-            this.setAttribute('is-ready', '');
+        // Ready to go!
+        if ( typeof emit === 'function' ) {
+            emit( this, 'media-playback', 'ready' );
+        }
 
-        } );
+        this.setAttribute('is-ready', '');
 
     }
 
@@ -94,15 +98,20 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         // Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
         this.targetAttr = this.getAttribute( 'target' ) ?? false;
 
-        let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
-        let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
-
         // Because this is a HTML Web Component the user is expected to provide a child <button> element
         // for the play/pause ("Playback") button. If no button is provided, we will create one later.
         this.playbackButton = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
 
         // 3b. Check the target attribute exists and it can be used to select a HTMLMediaElement.
-        this.targetMedia = ( this.targetAttr !== false && document.querySelector( _mediaSelector ) instanceof HTMLMediaElement) ? document.querySelector( _mediaSelector ) : false;
+        if ( this.targetAttr !== false && document.querySelector( _mediaSelector ) instanceof HTMLMediaElement ) {
+            let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
+            let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
+            this.targetMedia = document.querySelector( _mediaSelector );
+        } else if ( this.querySelector('video, audio')) {
+            this.targetMedia = this.querySelector('video')
+        }
+
+        console.log(this.targetMedia);
     }
 
 
@@ -128,7 +137,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             let _targetMediaID = `video-${Math.floor(Math.random() * 1000)}`;
 
-            this.targetMedia = this.querySelector('video, audio');
+            this.targetMedia = this.querySelector('video');
+
+            // console.log(this.targetMedia);
 
             // Ensure the video has an ID for aria-controls
             this.targetMedia.setAttribute('id', _targetMediaID);
@@ -137,8 +148,12 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         /*
             2. Use the button element if a child button element is present
         */
-        if ( ( this.targetAttr && this.targetMedia ) && this.querySelector('button') ) {
+        if ( this.targetMedia !== false && this.querySelector('button') ) {
+
+            // console.log('Use the button element if a child button element is present');
+
             this.setPlayBackButton();
+
         }
 
         /*
@@ -174,13 +189,84 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
      * Helper and Event Methods.
      */
 
+    videoReady ( video ) {
+        if ( video ) {
+            return new Promise( resolve => {
+                if ( video.readyState > 2 ) resolve( video );
+                else video.addEventListener("canplay", () => resolve(video), { once: true });
+            } );
+        }
+    }
 
+    videoPlaying ( video, countdown = 5000 ) {
+
+        return new Promise( ( resolve, reject ) => {
+            console.log(video);
+            console.log(`video.paused: ${video.paused}`);
+            console.log(`video.ended: ${video.ended}`);
+            console.log(`video.readyState: ${video.readyState}`);
+
+            if (
+                ! video.paused
+                && ! video.ended
+                && video.readyState > 2
+            ) {
+                resolve(video);
+                return;
+            }
+
+            // else video.addEventListener("playing", () => resolve(video), { once: true });
+
+            const onPlaying = () => {
+                cleanup();
+                resolve(video);
+            };
+
+            const onError = () => {
+                cleanup();
+                reject(video.error || new Error("Playback error"));
+            };
+
+            const onAbort = () => {
+                cleanup();
+                reject(new Error("Playback aborted"));
+            };
+
+            const cleanup = () => {
+                clearTimeout(timer);
+                video.removeEventListener("playing", onPlaying);
+                video.removeEventListener("error", onError);
+                video.removeEventListener("abort", onAbort);
+            };
+
+            // Resolve
+            video.addEventListener("playing", onPlaying, { once: true });
+
+            // Reject
+            video.addEventListener("error", onError, { once: true });
+
+            // Reject
+            video.addEventListener("abort", onAbort, { once: true });
+
+            // Timeout - do not wait forever if playback never starts.
+            const timer = setTimeout( () => {
+                cleanup();
+                reject( new Error(`Playback did not start within ${countdown}ms`) );
+            }, countdown );
+
+            // Kick off play attempt (for autoplay cases)
+            // video.play().catch(err => {
+            //     cleanup();
+            //     reject(err);
+            // });
+      });
+    }
 
     setPlayBackButton () {
 
-        let setPressedState = this.mediaStatus.isPlaying ? 'false' : 'true';
+        console.log(`set button, this.mediaStatus.isPlaying ${this.mediaStatus.isPlaying}`);
 
-        console.log(`setPlayBackButton: ${setPressedState}`);
+        let setPressedState = this.mediaStatus.isPlaying ? 'false' : 'true';
 
         this.playbackButton = this.querySelector('button');
 
@@ -197,11 +283,13 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     }
 
     createPlayBackButton () {
+
+        console.log(`create button, this.mediaStatus.isPlaying ${this.mediaStatus.isPlaying}`);
+
         let setPressedState = this.mediaStatus.isPlaying ? 'false' : 'true';
 
-        console.log(this.mediaStatus.isPlaying);
-
         this.playbackButton = document.createElement('button');
+
         this.playbackButton.setAttribute('aria-label', 'Pause');
         this.playbackButton.setAttribute('aria-pressed', setPressedState );
         this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
@@ -223,12 +311,6 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         });
     }
 
-    hasReducedMotion () {
-        const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
-
-        if ( hasReducedMotion ) this.playPauseHandler();
-    }
-
     playPauseHandler ( btn = this.playbackButton, media = this.targetMedia ) {
         btn.classList.remove('replay');
 
@@ -247,49 +329,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         }
     }
 
-     waitForMediaReady() {
-
-        return new Promise( ( resolve ) => {
-
-            const checkStatus = () => {
-
-                console.log('paused', this.targetMedia.paused);
-                console.log('ended', this.targetMedia.ended);
-                console.log('currentTime', this.targetMedia.currentTime);
-
-                let isPlaying = true; // this.targetMedia.currentTime > 0
-
-                if (this.targetMedia.paused || this.targetMedia.ended) {
-                    isPlaying = false;
-                }
-
-                this.mediaStatus.isReady = this.targetMedia.readyState >= 4 ? true : false;
-                this.mediaStatus.isPlaying = isPlaying;
-
-                console.log('readystate',this.targetMedia.readyState);
-
-                resolve(this.mediaStatus);
-            };
-
-            if ( this.targetMedia.readyState >= 4 ) {
-
-                console.log('mediaready');
-
-                // HAVE_ENOUGH_DATA
-                checkStatus();
-
-            } else {
-
-                const onCanPlayThrough = () => {
-                    this.targetMedia.removeEventListener( "canplaythrough", onCanPlayThrough );
-                    console.log('mediaplaythrough');
-                    checkStatus();
-                };
-
-                this.targetMedia.addEventListener( "canplaythrough", onCanPlayThrough );
-
-            }
-        });
+    hasReducedMotion () {
+        const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
+        if ( hasReducedMotion ) this.playPauseHandler();
     }
 
 } );
