@@ -8,9 +8,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     /**
      * Class Fields
      *
-     * @type { string | boolean }             targetAttr      The target attribute value or false if not set.
-     * @type { HTMLButtonElement | boolean }  playbackButton  The play/pause button element or false if not set.
-     * @type { HTMLMediaElement | boolean }   targetMedia     The targeted HTMLMediaElement or false if not found.
+     * @type { string | boolean | null }             targetAttr      The target attribute value or false if not set.
+     * @type { HTMLButtonElement | boolean | null }  playbackButton  The play/pause button element or false if not set.
+     * @type { HTMLMediaElement | boolean | null }   targetMedia     The targeted HTMLMediaElement or false if not found.
      */
 
     // The target attribute is a string used to select the target HTMLMediaElement by ID.
@@ -21,6 +21,12 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
     // The audio or video HTMLMediaElement that needs to be controlled.
     targetMedia = false;
+
+    // Media status object to track if media is ready and if it is currently playing.
+    mediaStatus = {
+        isReady: false,
+        isPlaying: false,
+    };
 
 
     /**
@@ -40,55 +46,63 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
      * When initialized, do a great many things.
      *  1. Don't run if already initialized
      *  2. Get settings
-     *  3. Render
+     *  3. Calls render()
      *  4. On "Ready" updates
      */
 
     init () {
 
         /*
-            1. Don't run if already initialized
+            Don't run if already initialized
         */
+
         if ( this.hasAttribute( 'is-ready' ) ) return;
 
+        // Setup fields
+        this.setup();
 
         /*
-            2. Get settings
+            Wait for the target media to be ready before continuing
+            This is important because we need to know the media state (playing, paused, ended)
+            before we can set up the play/pause button correctly.
+            We use the waitForMediaReady() method which returns a promise that resolves when the media is ready.
         */
 
-        // 2a. Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
+        this.waitForMediaReady().then( mediaStatus => {
+
+            // Reader or fail
+            if ( ! this.render() ) {
+                if (typeof debug === "function") {
+                    debug(this, 'Render failed: target media did not initialize properly.');
+                }
+                return;
+            }
+
+            // Ready to go!
+            if ( typeof emit === "function" ) {
+                emit( this, 'media-playback', 'ready' );
+            }
+            this.setAttribute('is-ready', '');
+
+        } );
+
+    }
+
+
+    setup () {
+
+        // Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
         this.targetAttr = this.getAttribute( 'target' ) ?? false;
 
         let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
         let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
 
-        // 2b. Because this is a HTML Web Component the user is expected to provide a child <button> element
+        // Because this is a HTML Web Component the user is expected to provide a child <button> element
         // for the play/pause ("Playback") button. If no button is provided, we will create one later.
         this.playbackButton = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
 
         // 3b. Check the target attribute exists and it can be used to select a HTMLMediaElement.
         this.targetMedia = ( this.targetAttr !== false && document.querySelector( _mediaSelector ) instanceof HTMLMediaElement) ? document.querySelector( _mediaSelector ) : false;
-
-        /*
-            3. Render
-        */
-
-        // NOTE: If render() does not succeed, then run the code inside the block.
-        if ( !this.render() ) {
-            if ( typeof debug === "function" ) {
-                debug(this, 'The target video element with an ID does not exist');
-            }
-            return;
-        }
-
-        /*
-            4. Ready
-        */
-        if ( typeof emit === "function" ) {
-            emit(this, 'media-playback', 'ready');
-        }
-
-        this.setAttribute('is-ready', '');
     }
 
 
@@ -156,29 +170,25 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     }
 
 
-
     /**
      * Helper and Event Methods.
      */
 
-    getMediaState () {
-        if (this.targetMedia.ended) return "ended";
-        if (this.targetMedia.paused) return "paused";
-        return "playing";
-    }
+
 
     setPlayBackButton () {
-        let mediaState = this.getMediaState();
-        let setPressedState = ( mediaState === 'playing' ) ? 'false' : 'true';
+
+        let setPressedState = this.mediaStatus.isPlaying ? 'false' : 'true';
 
         console.log(`setPlayBackButton: ${setPressedState}`);
 
         this.playbackButton = this.querySelector('button');
-        this.playbackButton.classList.add('set-button');
 
+        this.playbackButton.setAttribute('aria-label', 'Pause');
         this.playbackButton.setAttribute('aria-pressed', setPressedState);
         this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
-        this.playbackButton.setAttribute('aria-label', 'Pause');
+
+        this.playbackButton.classList.add('set-button');
 
         if ( this.playbackButton.innerHTML.trim() !== '' ) {
             this.playbackButton.innerHTML = '';
@@ -187,10 +197,13 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     }
 
     createPlayBackButton () {
-        this.playbackButton = document.createElement('button');
+        let setPressedState = this.mediaStatus.isPlaying ? 'false' : 'true';
 
+        console.log(this.mediaStatus.isPlaying);
+
+        this.playbackButton = document.createElement('button');
         this.playbackButton.setAttribute('aria-label', 'Pause');
-        this.playbackButton.setAttribute('aria-pressed', ( this.getMediaState() === 'playing' ) ? 'false' : 'true' );
+        this.playbackButton.setAttribute('aria-pressed', setPressedState );
         this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
 
         this.playbackButton.classList.add('created-button');
@@ -232,6 +245,51 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             btn.setAttribute('aria-pressed', 'true');
             media.pause();
         }
+    }
+
+     waitForMediaReady() {
+
+        return new Promise( ( resolve ) => {
+
+            const checkStatus = () => {
+
+                console.log('paused', this.targetMedia.paused);
+                console.log('ended', this.targetMedia.ended);
+                console.log('currentTime', this.targetMedia.currentTime);
+
+                let isPlaying = true; // this.targetMedia.currentTime > 0
+
+                if (this.targetMedia.paused || this.targetMedia.ended) {
+                    isPlaying = false;
+                }
+
+                this.mediaStatus.isReady = this.targetMedia.readyState >= 4 ? true : false;
+                this.mediaStatus.isPlaying = isPlaying;
+
+                console.log('readystate',this.targetMedia.readyState);
+
+                resolve(this.mediaStatus);
+            };
+
+            if ( this.targetMedia.readyState >= 4 ) {
+
+                console.log('mediaready');
+
+                // HAVE_ENOUGH_DATA
+                checkStatus();
+
+            } else {
+
+                const onCanPlayThrough = () => {
+                    this.targetMedia.removeEventListener( "canplaythrough", onCanPlayThrough );
+                    console.log('mediaplaythrough');
+                    checkStatus();
+                };
+
+                this.targetMedia.addEventListener( "canplaythrough", onCanPlayThrough );
+
+            }
+        });
     }
 
 } );
