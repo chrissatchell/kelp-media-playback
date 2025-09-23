@@ -28,6 +28,8 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         isPlaying: false,
     };
 
+    #hasUserProvidedButton = false;
+
 
     /**
      *  When connected to the DOM, run the init() method when ready.
@@ -95,8 +97,14 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
     setup () {
 
+
         // Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
         this.targetAttr = this.getAttribute( 'target' ) ?? false;
+
+        console.log('this.targetAttr', this.targetAttr);
+
+        let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
+        let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
 
         // Because this is a HTML Web Component the user is expected to provide a child <button> element
         // for the play/pause ("Playback") button. If no button is provided, we will create one later.
@@ -104,11 +112,13 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
         // 3b. Check the target attribute exists and it can be used to select a HTMLMediaElement.
         if ( this.targetAttr !== false && document.querySelector( _mediaSelector ) instanceof HTMLMediaElement ) {
-            let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
-            let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
+
             this.targetMedia = document.querySelector( _mediaSelector );
+
         } else if ( this.querySelector('video, audio')) {
-            this.targetMedia = this.querySelector('video')
+
+            this.targetMedia = this.querySelector('video, audio');
+
         }
 
         console.log(this.targetMedia);
@@ -135,11 +145,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         */
         if ( this.querySelector('video, audio') instanceof HTMLMediaElement) {
 
-            let _targetMediaID = `video-${Math.floor(Math.random() * 1000)}`;
+            let _targetMediaID = `media-${Math.floor(Math.random() * 1000)}`;
 
-            this.targetMedia = this.querySelector('video');
-
-            // console.log(this.targetMedia);
+            this.targetMedia = this.querySelector('video, audio');
 
             // Ensure the video has an ID for aria-controls
             this.targetMedia.setAttribute('id', _targetMediaID);
@@ -153,6 +161,8 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             // console.log('Use the button element if a child button element is present');
 
             this.setPlayBackButton();
+
+            this.#hasUserProvidedButton = true;
 
         }
 
@@ -168,7 +178,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         */
         if ( this.targetMedia instanceof HTMLMediaElement ) {
 
-            this.appendChild(this.playbackButton);
+            if ( this.#hasUserProvidedButton === false ) {
+                this.appendChild(this.playbackButton);
+            }
 
             this.hasReducedMotion();
 
