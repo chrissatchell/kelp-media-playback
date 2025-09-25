@@ -36,7 +36,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
      */
 
     connectedCallback () {
-        if ( typeof ready === "function" ) {
+        if ( typeof ready === 'function' ) {
             ready(this);
         } else {
             this.init();
@@ -58,7 +58,13 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         if ( this.hasAttribute( 'is-ready' ) ) return;
 
         // Setup fields
-        this.setup();
+        if ( ! this.setup() ) {
+            if ( typeof debug === 'function' ) {
+                debug( this, 'Setup failed' );
+
+            }
+            return;
+        }
 
         // Media is ready to play
         await this.videoReady( this.targetMedia );
@@ -97,11 +103,8 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
     setup () {
 
-
         // Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
         this.targetAttr = this.getAttribute( 'target' ) ?? false;
-
-        console.log('this.targetAttr', this.targetAttr);
 
         let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
         let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
@@ -121,7 +124,14 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
         }
 
-        console.log(this.targetMedia);
+        console.log('controls: ', this.targetMedia.hasAttribute('controls'));
+
+        if ( this.targetMedia.hasAttribute('controls') ) {
+            console.error(`Please remove the 'controls' attribute from your media element id="${this.targetMedia.id}"`);
+            return false;
+        }
+
+        return true;
     }
 
 
