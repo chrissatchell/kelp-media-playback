@@ -1,0 +1,110 @@
+/**
+ * @section <kelp-tabs>
+ */
+
+@layer kelp.core {
+
+    kelp-media-playback {
+        --icon-size: calc(14/16*1rem);
+        --icon-play: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");;
+        --icon-pause: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
+        --icon-replay: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E");
+
+        --button-color: white;
+        --button-bg: #00000080;
+        --button-border: 2px solid #FFFFFF70;
+        --button-hover-border: white;
+        --button-focus-shadow: #4285F4;
+
+        --button-size: calc(42/16*1rem);
+
+        & button {
+            border: var(--button-border);
+            background-color: var(--button-bg);
+            color: var(--button-color);
+            width: var(--button-size);
+            height: var(--button-size);
+
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 9999px;
+            cursor: pointer;
+
+            position: absolute;
+            bottom: 1.2rem;
+            right: 0.75rem;
+            z-index: 2;
+
+            &:hover {
+                box-shadow: 0 0 0 1px var(--button-color);
+                border-color: var(--button-color) !important;
+            }
+
+            &:focus-visible {
+                box-shadow: 0 0 0 3px var(--button-color), 0 0 0 6px #4285F4;
+                border-color: var(--button-color) !important;
+            }
+
+            &::after {
+                content: '';
+                width: 100%;
+                height: 100%;
+                display: inline-block;
+                position: relative;
+                background: center center scroll no-repeat;
+                background-size: var(--icon-size);
+                transform: translate(0, 0);
+                pointer-events: none;
+            }
+        }
+
+        &[media-has-controls] button {
+            bottom: auto;
+            top: 1rem;
+        }
+
+    }
+
+}
+
+@layer kelp.state {
+
+	kelp-media-playback {
+
+        & button {
+
+            &:hover {
+                box-shadow: 0 0 0 1px white;
+                border-color: white !important;
+            }
+
+            &:focus-visible {
+                box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
+                border-color: white !important;
+            }
+
+            /* Video is playing and the pause button is not pressed (show the pause icon). */
+            &::after {
+                background-image: var(--icon-pause);
+            }
+
+            /* Video is paused and the pause button is pressed (show the play icon). */
+            &[aria-pressed="true"]::after {
+                background-image: var(--icon-play);
+                transform: translate(1px, 0);
+            }
+
+            /* Video has played to the end and is ready to be replayed (show the replay icon). */
+            &.replay::after {
+                transform: scale(1.3);
+                background-image: var(--icon-replay);
+            }
+
+        }
+
+    }
+
+}

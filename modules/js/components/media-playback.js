@@ -8,9 +8,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     /**
      * Class Fields
      *
-     * @type { string | boolean | null }             targetAttr      The target attribute value or false if not set.
-     * @type { HTMLButtonElement | boolean | null }  playbackButton  The play/pause button element or false if not set.
-     * @type { HTMLMediaElement | boolean | null }   targetMedia     The targeted HTMLMediaElement or false if not found.
+     * targetAttr      The target attribute value or false if not set.
+     * playbackButton  The play/pause button element or false if not set.
+     * targetMedia     The targeted HTMLMediaElement or false if not found.
      */
 
     // The target attribute is a string used to select the target HTMLMediaElement by ID.
@@ -61,19 +61,23 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         if ( ! this.setup() ) {
             if ( typeof debug === 'function' ) {
                 debug( this, 'Setup failed' );
-
             }
             return;
         }
 
+        // Check if Media is ready to play
+        await this.mediaIsReady();
+
         // Media is ready to play
-        await this.videoReady( this.targetMedia );
         this.mediaStatus.isReady = true;
 
+        // Media state
         try {
 
+            // Check if Media is playing
+            await this.mediaIsPlaying();
+
             // Media is playing
-            await this.videoPlaying( this.targetMedia, 10 );
             this.mediaStatus.isPlaying = true;
 
         } catch ( err ) {
@@ -83,7 +87,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
         }
 
-        // Reader
+        // Render
         if ( ! this.render() ) {
             if ( typeof debug === 'function' ) {
                 debug( this, 'Render failed' );
@@ -103,20 +107,26 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
     setup () {
 
+        // @ts-ignore
         // Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
         this.targetAttr = this.getAttribute( 'target' ) ?? false;
 
         let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
         let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
 
+        // @ts-ignore
         // Because this is a HTML Web Component the user is expected to provide a child <button> element
         // for the play/pause ("Playback") button. If no button is provided, we will create one later.
         this.playbackButton = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
 
         // 3b. Check the target attribute exists and it can be used to select a HTMLMediaElement.
-        if ( this.targetAttr !== false && document.querySelector( _mediaSelector ) instanceof HTMLMediaElement ) {
+        if (
+            this.targetAttr !== false
+            && document.getElementById( this.targetAttr ) !== null
+            && document.getElementById( this.targetAttr ) instanceof HTMLMediaElement
+        ) {
 
-            this.targetMedia = document.querySelector( _mediaSelector );
+            this.targetMedia = document.getElementById( this.targetAttr );
 
         } else if ( this.querySelector('video, audio')) {
 
@@ -127,8 +137,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         console.log('controls: ', this.targetMedia.hasAttribute('controls'));
 
         if ( this.targetMedia.hasAttribute('controls') ) {
+            this.setAttribute('media-has-controls','');
             console.error(`Please remove the 'controls' attribute from your media element id="${this.targetMedia.id}"`);
-            return false;
+            //return false;
         }
 
         return true;
@@ -186,7 +197,10 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         /*
             3. If we have a valid targetMedia, append the button and add event listeners
         */
-        if ( this.targetMedia instanceof HTMLMediaElement ) {
+        if (
+            this.targetMedia !== false
+            && this.targetMedia instanceof HTMLMediaElement
+        ) {
 
             if ( this.#hasUserProvidedButton === false ) {
                 this.appendChild(this.playbackButton);
@@ -196,7 +210,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             this.onPointerEvents();
 
-            this.onMediaEnded();
+            this.onMediaEvents();
 
         } else {
             return false;
@@ -211,64 +225,74 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
      * Helper and Event Methods.
      */
 
-    videoReady ( video ) {
-        if ( video ) {
+    mediaIsReady ( media = this.targetMedia ) {
+        if ( media ) {
             return new Promise( resolve => {
-                if ( video.readyState > 2 ) resolve( video );
-                else video.addEventListener("canplay", () => resolve(video), { once: true });
+                if ( media.readyState > 2 ) resolve( media );
+                else media.addEventListener("canplay", () => resolve(media), { once: true });
             } );
         }
     }
 
-    videoPlaying ( video, countdown = 5000 ) {
+    mediaIsPlaying ( media = this.targetMedia, countdown = 50 ) {
 
         return new Promise( ( resolve, reject ) => {
-            console.log(video);
-            console.log(`video.paused: ${video.paused}`);
-            console.log(`video.ended: ${video.ended}`);
-            console.log(`video.readyState: ${video.readyState}`);
+            /*
+            console.log(media);
+            console.log(`media.paused: ${media.paused}`);
+            console.log(`media.ended: ${media.ended}`);
+            console.log(`media.readyState: ${media.readyState}`);
+            */
+
+
+            /*
+                If media is playing then resolve and exit.
+            */
 
             if (
-                ! video.paused
-                && ! video.ended
-                && video.readyState > 2
+                ! media.paused
+                && ! media.ended
+                && media.readyState > 2
             ) {
-                resolve(video);
+                resolve(media);
                 return;
             }
 
-            // else video.addEventListener("playing", () => resolve(video), { once: true });
 
-            const onPlaying = () => {
+            /*
+                If media is not already playing then setup listeners.
+            */
+
+            // Resolve
+            media.addEventListener("playing", onPlaying, { once: true });
+
+            // Reject
+            media.addEventListener("error", onError, { once: true });
+
+            // Reject
+            media.addEventListener("abort", onAbort, { once: true });
+
+            function onPlaying () {
                 cleanup();
-                resolve(video);
+                resolve(media);
             };
 
-            const onError = () => {
+            function onError () {
                 cleanup();
-                reject(video.error || new Error("Playback error"));
+                reject(media.error || new Error("Playback error"));
             };
 
-            const onAbort = () => {
+            function onAbort () {
                 cleanup();
                 reject(new Error("Playback aborted"));
             };
 
-            const cleanup = () => {
+            function cleanup () {
                 clearTimeout(timer);
-                video.removeEventListener("playing", onPlaying);
-                video.removeEventListener("error", onError);
-                video.removeEventListener("abort", onAbort);
+                media.removeEventListener("playing", onPlaying);
+                media.removeEventListener("error", onError);
+                media.removeEventListener("abort", onAbort);
             };
-
-            // Resolve
-            video.addEventListener("playing", onPlaying, { once: true });
-
-            // Reject
-            video.addEventListener("error", onError, { once: true });
-
-            // Reject
-            video.addEventListener("abort", onAbort, { once: true });
 
             // Timeout - do not wait forever if playback never starts.
             const timer = setTimeout( () => {
@@ -277,7 +301,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             }, countdown );
 
             // Kick off play attempt (for autoplay cases)
-            // video.play().catch(err => {
+            // media.play().catch(err => {
             //     cleanup();
             //     reject(err);
             // });
@@ -320,34 +344,95 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     }
 
     onPointerEvents () {
+
         this.playbackButton.addEventListener('click', (ev) => {
             ev.preventDefault();
-            this.playPauseHandler();
+
+            if ( !this.targetMedia.paused ) {
+
+                this.targetMedia.pause();
+
+            } else if ( this.targetMedia.paused ) {
+
+                this.targetMedia.play();
+
+            }
+
+            // NOTE: This is now handled by the play and pause event listeners.
+            //this.playPauseHandler();
         });
     }
 
-    onMediaEnded () {
-        this.targetMedia.addEventListener('ended', (ev) => {
+    onMediaEvents () {
+
+        // Keep button state in sync with video events
+        this.targetMedia.addEventListener("play", (ev) => {
             this.playPauseHandler();
+        });
+
+        this.targetMedia.addEventListener("pause", (ev) => {
+            this.playPauseHandler();
+        });
+
+        this.targetMedia.addEventListener('ended', (ev) => {
+
+            // NOTE: now this is handled by the "pause" event listener
+            // this.playPauseHandler();
+
             this.playbackButton.classList.add('replay');
+
+            console.log('ended');
+        });
+
+        this.targetMedia.addEventListener("seeking", () => {
+            if (
+                this.playbackButton.classList.contains('replay')
+                && this.targetMedia.currentTime < this.targetMedia.duration
+            ) {
+                this.playbackButton.classList.remove('replay');
+                console.log("Seeked to:", this.targetMedia.currentTime);
+            }
+        });
+
+        this.targetMedia.addEventListener("seeked", () => {
+            const duration = this.targetMedia.duration;
+            const current = this.targetMedia.currentTime;
+
+            console.log(duration, current);
+
+            // Instead of Math.abs(), just check >=
+            if (duration && current >= duration) {
+                console.log("Seeked to end!");
+                this.playbackButton.classList.add('replay');
+                // this.targetMedia.currentTime = this.targetMedia.duration;
+                // this.targetMedia.pause();
+            }
         });
     }
 
     playPauseHandler ( btn = this.playbackButton, media = this.targetMedia ) {
         btn.classList.remove('replay');
 
+        /*
+            NOTE: The playing and pausing of media is now controlled by onPointerEvents.
+                  This was needed to solve a bug where the click, play, pause events were
+                  creating an infinite loop by triggering playPauseHandler.
+                  For example, if the playback button was clicked then the playPauseHandler
+                  would be triggered by the click event, then the play event ...
+        */
+
         // Play
         if ( btn.getAttribute('aria-pressed') == 'true' ) {
             btn.classList.remove('is-paused');
             btn.setAttribute('aria-pressed', 'false');
-            media.play();
+            //media.play();
         }
 
         // Pause
         else {
             btn.classList.add('is-paused');
             btn.setAttribute('aria-pressed', 'true');
-            media.pause();
+            //media.pause();
         }
     }
 
