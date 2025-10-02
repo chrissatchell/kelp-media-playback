@@ -5,22 +5,31 @@
 @layer kelp.core {
 
     kelp-media-playback {
-        --icon-size: calc(14/16*1rem);
         --icon-play: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");;
         --icon-pause: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
-        --icon-replay: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E");
+        --icon-replay: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path fill="white" d="M12,20.75A7.26,7.26,0,0,1,4.75,13.5a.75.75,0,0,1,1.5,0A5.75,5.75,0,1,0,12,7.75H9.5a.75.75,0,0,1,0-1.5H12a7.25,7.25,0,0,1,0,14.5Z"/><path fill="white" d="M12,10.75a.74.74,0,0,1-.53-.22l-3-3a.75.75,0,0,1,0-1.06l3-3a.75.75,0,1,1,1.06,1.06L10.06,7l2.47,2.47a.75.75,0,0,1,0,1.06A.74.74,0,0,1,12,10.75Z"/></g></svg>');
+        /* --icon-replay: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E"); */
+
+        --icon-size: calc(14/16*1rem);
+        --icon-replay-size: calc(24/16*1rem);
 
         --button-color: white;
-        --button-bg: #00000080;
+        --button-bg: #00000090;
         --button-border: 2px solid #FFFFFF70;
         --button-hover-border: white;
         --button-focus-shadow: #4285F4;
-
         --button-size: calc(42/16*1rem);
+        --button-filter: blur(4px);
+
+        --button-display-timing: 0.25s;
+        --button-display-delay: 0.1s;
+        --button-display-transform-start: scale(0.94);
+        --button-display-transform-end: scale(1);
 
         & button {
             border: var(--button-border);
             background-color: var(--button-bg);
+            backdrop-filter: var(--button-filter);
             color: var(--button-color);
             width: var(--button-size);
             height: var(--button-size);
@@ -56,6 +65,7 @@
                 position: relative;
                 background: center center scroll no-repeat;
                 background-size: var(--icon-size);
+                color: var(--button-color);
                 transform: translate(0, 0);
                 pointer-events: none;
             }
@@ -76,6 +86,17 @@
 
         & button {
 
+            /*
+                TODO: Default state.
+                    -- Show loading?
+                    -- Inert attr?
+                    -- pointer events none?
+                    -- opacity 0 and/or display none?
+            */
+            &::after {
+                /* background-image: var(--icon-pause); */
+            }
+
             &:hover {
                 box-shadow: 0 0 0 1px white;
                 border-color: white !important;
@@ -86,8 +107,12 @@
                 border-color: white !important;
             }
 
+        }
+
+        &[media-is-ready] button {
+
             /* Video is playing and the pause button is not pressed (show the pause icon). */
-            &::after {
+            &[aria-pressed="false"]::after {
                 background-image: var(--icon-pause);
             }
 
@@ -99,12 +124,32 @@
 
             /* Video has played to the end and is ready to be replayed (show the replay icon). */
             &.replay::after {
-                transform: scale(1.3);
+                --icon-replay-bgsize: var(--icon-replay-size, var(--icon-size));
+                background-size: var(--icon-replay-bgsize);
                 background-image: var(--icon-replay);
             }
 
         }
 
+    }
+
+    kelp-media-playback {
+        & button {
+            display: none;
+            opacity: 0;
+            transform: var(--button-display-transform-start);
+            transition: all var(--button-display-timing) var(--button-display-delay) ease-in-out;
+        }
+
+        &[media-is-ready] button {
+            display: block;
+            opacity: 1;
+            transform: var(--button-display-transform-end);
+            @starting-style {
+                opacity: 0;
+                transform: var(--button-display-transform-start);
+            }
+        }
     }
 
 }

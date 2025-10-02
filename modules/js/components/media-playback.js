@@ -8,21 +8,19 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     /**
      * Class Fields
      *
-     * targetAttr      The target attribute value or false if not set.
-     * playbackButton  The play/pause button element or false if not set.
-     * targetMedia     The targeted HTMLMediaElement or false if not found.
+     * targetAttr      {String}             The target attribute is a string used to select the target HTMLMediaElement by ID.
+     * playbackButton  {HTMLButtonElement}  User provided or generated <button> element for the play/pause ("Playback") button.
+     * targetMedia     {HTMLMediaElement}   The audio or video HTMLMediaElement that needs to be controlled.
+     * mediaStatus     {Object}             Object to track if media is ready and if it is currently playing.
+     * hasUserProvidedButton {Boolean}      Flag to track if a user provided button element was used.
      */
 
-    // The target attribute is a string used to select the target HTMLMediaElement by ID.
     targetAttr = false;
 
-    // User provided or generated <button> element for the play/pause ("Playback") button.
     playbackButton = false;
 
-    // The audio or video HTMLMediaElement that needs to be controlled.
     targetMedia = false;
 
-    // Media status object to track if media is ready and if it is currently playing.
     mediaStatus = {
         isReady: false,
         isPlaying: false,
@@ -32,7 +30,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
 
     /**
-     *  When connected to the DOM, run the init() method when ready.
+     *  1. When connected to the DOM, run the init() method when ready.
      */
 
     connectedCallback () {
@@ -45,11 +43,11 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
 
     /**
-     * When initialized, do a great many things.
-     *  1. Don't run if already initialized
-     *  2. Get settings
-     *  3. Calls render()
-     *  4. On "Ready" updates
+     *  2. When initialized, do a great many things.
+     *      i. Don't run if already initialized
+     *      ii. Get settings
+     *      iii. Calls render()
+     *      iv. On "Ready" updates
      */
 
     async init () {
@@ -65,19 +63,24 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             return;
         }
 
-        // Check if Media is ready to play
+        /* TODO: Loading state:
+            - no play or pause icon, instead a loading icon
+        */
+        // this.whileLoading()
+
+        // Media Ready State: Check if Media is ready to play...
         await this.mediaIsReady();
 
-        // Media is ready to play
+        // ... then if the Media is ready then update the mediaStatus.isReady flag.
         this.mediaStatus.isReady = true;
 
-        // Media state
+        // Media Playing State:
         try {
 
-            // Check if Media is playing
+            // Check if Media is playing ...
             await this.mediaIsPlaying();
 
-            // Media is playing
+            // ... then if the Media is playing then update the mediaStatus.isPlaying flag
             this.mediaStatus.isPlaying = true;
 
         } catch ( err ) {
@@ -95,31 +98,47 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             return;
         }
 
-        // Ready to go!
+        // Ready to go! emit a custom event: "media-playback:ready"
         if ( typeof emit === 'function' ) {
             emit( this, 'media-playback', 'ready' );
         }
 
+        // Set the "is-ready" attribute to indicate that the component is ready to use
         this.setAttribute('is-ready', '');
 
     }
 
 
+    /**
+     *  3. Setup the component's settings
+     *      i. Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
+     *      ii. Check if the target attribute is a valid HTMLMediaElement.
+     *      iii. Check if the user provided a button element.
+     *      iv. Check if the media element has a "controls" attribute
+     */
+
     setup () {
 
-        // @ts-ignore
-        // Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
+        /*
+            i. Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
+        */
         this.targetAttr = this.getAttribute( 'target' ) ?? false;
 
-        let _selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
-        let _mediaSelector = ( _selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
+        let selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
+        let mediaSelector = ( selectorType === 'id' ) ? this.targetAttr : `#${this.targetAttr}`;
 
-        // @ts-ignore
-        // Because this is a HTML Web Component the user is expected to provide a child <button> element
-        // for the play/pause ("Playback") button. If no button is provided, we will create one later.
+
+        /*
+            ii. Because this is a HTML Web Component the user is expected to provide a child <button> element
+                for the play/pause ("Playback") button. If no button element is provided, we will need to create one later.
+        */
         this.playbackButton = this.querySelector('button') instanceof HTMLButtonElement ? this.querySelector('button') : false;
 
-        // 3b. Check the target attribute exists and it can be used to select a HTMLMediaElement.
+
+        /*
+            iii. Check the target attribute exists and it can be used to select a HTMLMediaElement.
+        */
+
         if (
             this.targetAttr !== false
             && document.getElementById( this.targetAttr ) !== null
@@ -132,13 +151,37 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             this.targetMedia = this.querySelector('video, audio');
 
+        } else {
+
+            if ( typeof debug === 'function' ) {
+                debug( this, `
+                    Target attribute is not a valid HTMLMediaElement.
+                    Check the target attribute is set and ensure it can be used to target a HTMLMediaElement using its ID or a selector.
+                `);
+            }
+
+            // Return false to indicate that the setup failed.
+            // This method is called by the init() method and if the conditional
+            // where setup() is called returns false:
+            //   1. debug("Setup failed") is called
+            //   2. init() returns false and finishes early
+            return false;
         }
 
-        console.log('controls: ', this.targetMedia.hasAttribute('controls'));
+
+        /*
+            iv. Check if the media element has a "controls" attribute
+        */
+
+        // NOTE: Is this an edge case? Will users need or want to show the native media controls
+        //       along with the custom button media playback button?
 
         if ( this.targetMedia.hasAttribute('controls') ) {
             this.setAttribute('media-has-controls','');
-            console.error(`Please remove the 'controls' attribute from your media element id="${this.targetMedia.id}"`);
+
+            // TODO: Enforce the "controls" attribute to be removed from the media element, if needed.
+
+            // console.error(`Please remove the 'controls' attribute from your media element id="${this.targetMedia.id}"`);
             //return false;
         }
 
@@ -147,39 +190,44 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
 
     /**
-     * Render the component's HTML structure.
-     *  1. Check for a nested video or audio element and set an ID attribute.
-     *  2. Use the button element if a child button element is present.
-     *  2b. OR Create the button element if no child button element is present.
-     *  3. If we have a valid targetMedia, append the button and add event listeners.
+     *  4. Render the component's HTML structure.
+     *      i. Check for a nested video or audio element and set an ID attribute.
+     *      ii. Use the button element if a child button element is present.
+     *      iii. OR Create the button element if no child button element is present.
+     *      iv. If we have a valid targetMedia, append the button and add event listeners.
      */
 
     render () {
 
-        /*
-            TODO: Wrap contents in a promise that is resolved when the media is ready to play and/or loaded
-            Then get the media state (getMediaState)
-        */
 
         /*
-            1. Check for a nested video or audio element and set an ID attribute.
+            i. Check for a nested media element and set its ID.
         */
         if ( this.querySelector('video, audio') instanceof HTMLMediaElement) {
 
-            let _targetMediaID = `media-${Math.floor(Math.random() * 1000)}`;
-
             this.targetMedia = this.querySelector('video, audio');
 
+            let id = `${Math.floor(Math.random() * 1000)}`;
+
+            // Borrow logic from setTextAsID.js
+            let suffix = 0;
+            let existing = document.querySelector(`#kelp_${id}`);
+            while (existing) {
+                suffix++;
+                existing = document.querySelector(`#kelp_${id}_${suffix}`);
+            }
+
+            // Set the ID on the element
             // Ensure the video has an ID for aria-controls
-            this.targetMedia.setAttribute('id', _targetMediaID);
+            // When the playback buttom is set or created, the id of the media
+            // element is used
+            this.targetMedia.id = `kelp_${id}${suffix ? `_${suffix}` : ''}`;
         }
 
         /*
-            2. Use the button element if a child button element is present
+            ii. Use the provided child button element
         */
         if ( this.targetMedia !== false && this.querySelector('button') ) {
-
-            // console.log('Use the button element if a child button element is present');
 
             this.setPlayBackButton();
 
@@ -188,14 +236,16 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         }
 
         /*
-            2b. OR Create the button element if no child button element is present
+            iii. OR Create the button element if no child button element is provided
         */
         else if ( this.targetMedia !== false && ! this.querySelector('button') ) {
+
             this.createPlayBackButton();
+
         }
 
         /*
-            3. If we have a valid targetMedia, append the button and add event listeners
+            iv. If we have a valid targetMedia, append the button and add event listeners
         */
         if (
             this.targetMedia !== false
@@ -203,7 +253,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         ) {
 
             if ( this.#hasUserProvidedButton === false ) {
-                this.appendChild(this.playbackButton);
+
+                this.appendChild( this.playbackButton );
+
             }
 
             this.hasReducedMotion();
@@ -228,8 +280,17 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     mediaIsReady ( media = this.targetMedia ) {
         if ( media ) {
             return new Promise( resolve => {
-                if ( media.readyState > 2 ) resolve( media );
-                else media.addEventListener("canplay", () => resolve(media), { once: true });
+                if ( media.readyState > 2 ) {
+                    this.setAttribute('media-is-ready', '');
+                    resolve(media);
+                }
+
+                else {
+                    media.addEventListener('canplay', ev => {
+                        this.setAttribute('media-is-ready', '');
+                        resolve(media);
+                    }, { once: true });
+                }
             } );
         }
     }
@@ -237,13 +298,6 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
     mediaIsPlaying ( media = this.targetMedia, countdown = 50 ) {
 
         return new Promise( ( resolve, reject ) => {
-            /*
-            console.log(media);
-            console.log(`media.paused: ${media.paused}`);
-            console.log(`media.ended: ${media.ended}`);
-            console.log(`media.readyState: ${media.readyState}`);
-            */
-
 
             /*
                 If media is playing then resolve and exit.
@@ -272,6 +326,11 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             // Reject
             media.addEventListener("abort", onAbort, { once: true });
 
+
+            /*
+                Handlers
+            */
+
             function onPlaying () {
                 cleanup();
                 resolve(media);
@@ -294,23 +353,23 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
                 media.removeEventListener("abort", onAbort);
             };
 
+
             // Timeout - do not wait forever if playback never starts.
             const timer = setTimeout( () => {
                 cleanup();
                 reject( new Error(`Playback did not start within ${countdown}ms`) );
             }, countdown );
 
-            // Kick off play attempt (for autoplay cases)
-            // media.play().catch(err => {
-            //     cleanup();
-            //     reject(err);
-            // });
       });
     }
 
     setPlayBackButton () {
 
-        console.log(`set button, this.mediaStatus.isPlaying ${this.mediaStatus.isPlaying}`);
+        // console.log(`set button, this.mediaStatus.isPlaying ${this.mediaStatus.isPlaying}`);
+
+        if ( this.playbackButton.innerHTML.trim() !== '' ) {
+            this.playbackButton.innerHTML = '';
+        }
 
         let setPressedState = this.mediaStatus.isPlaying ? 'false' : 'true';
 
@@ -321,10 +380,6 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         this.playbackButton.setAttribute('aria-controls', this.targetMedia.getAttribute('id'));
 
         this.playbackButton.classList.add('set-button');
-
-        if ( this.playbackButton.innerHTML.trim() !== '' ) {
-            this.playbackButton.innerHTML = '';
-        }
 
     }
 
@@ -438,7 +493,10 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
     hasReducedMotion () {
         const hasReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches === true;
-        if ( hasReducedMotion ) this.playPauseHandler();
+        if ( hasReducedMotion ) {
+            this.targetMedia?.pause();
+            this.playPauseHandler();
+        }
     }
 
 } );
