@@ -24,115 +24,191 @@
 
             <div class="dev-media-playback__example">
 
-                <div role="list" style="position:relative; display: inline-flex; flex-flow: row wrap; gap: 24px">
+                <div role="list" style="position:relative; display: flex; flex-flow: column nowrap; gap: 24px">
 
                     <!-- Video -->
-
                     <div role="listitem" class="margin-end-xl">
 
                         <div style="position: relative;">
 
-                            <kelp-media-playback>
+                            <kelp-media-playback class="custom" target="redwood" loading-delay="2s">
+
+                                <style>
+                                    .custom-playback-group {
+                                        padding: 0.5rem;
+                                        /* background-color: #FFFFFF10; */
+                                        border-radius: 40px;
+                                        backdrop-filter: blur(8px);
+                                        border-bottom: 1px solid #FFFFFF20;
+                                        border-right: 1px solid #FFFFFF20;
+                                        border-left: 1px solid #FFFFFF20;
+                                        text-align: right;
+                                        /* margin-inline: 1rem; */
+                                        display: block;
+
+                                        position: absolute;
+                                        bottom: 1rem;
+                                        left: 50%;
+                                        width: min(calc(100% - 2rem), 610px);
+                                        transform: translateX(-50%);
+                                    }
+                                    .custom-playback {
+                                        --button-border: none;
+                                        --button-bg: #FFFFFF20;
+                                        display: inline-block;
+                                        margin-right: 0.25rem;
+                                        /* inset: auto auto 0.85rem 0.75rem; */
+                                    }
+                                </style>
+
+                                <style>
+                                    kelp-media-playback {
+
+                                        /* Hide all children of the button element if they exist */
+                                        & button:has(*) {
+                                            position: relative;
+
+                                            * {
+                                                font-size: 1rem;
+                                            }
+
+                                            &:has(.play) .play,
+                                            &:has(.pause) .pause,
+                                            &:has(.replay) .replay {
+                                                display: none;
+                                                opacity: 0;
+                                                font-size: 1rem;
+                                                transition: opacity 1s 0s;
+                                            }
+
+                                            &.replay::after {
+                                                transition: none;
+                                            }
+
+                                            &::after {
+                                                transition: none;
+                                            }
+                                        }
+
+                                    }
+
+                                    /* Loading */
+                                    kelp-media-playback {
+
+                                        /* While loading (ie :not([media-is-ready]) ) then show the  */
+                                        &:not([media-is-ready]) .loading[class] {
+                                            opacity: 1;
+
+                                            width: 30px;
+                                            height: 30px;
+                                            font-size: 30px;
+                                            /* outline: 2px solid #FFFFFF80; */
+                                            justify-content: center;
+                                            align-items: center;
+                                        }
+
+                                        /* Hide loading when the media is ready */
+                                        &[media-is-ready] .loading[class] {
+                                            opacity: 0;
+                                            display: none;
+                                            animation: none;
+                                        }
+                                    }
+
+                                    /* Play/Pause */
+                                    kelp-media-playback[media-is-ready] {
+
+                                        /* Play */
+                                        & button:not(.replay)[aria-pressed="true"]:has(.play) {
+                                            &:after {
+                                                position: absolute;
+                                                height: 1px;
+                                                width: 1px;
+                                                opacity: 0;
+                                            }
+
+                                            &[class] > .play[class] {
+                                                opacity: 1;
+                                                display: inline-block;
+                                            }
+
+                                            & .pause[class] {
+                                                display: none;
+                                                opacity: 0;
+                                            }
+                                        }
+
+                                        /* Pause */
+                                        & button[aria-pressed="false"]:has(.pause)  {
+                                            &:after {
+                                                position: absolute;
+                                                height: 1px;
+                                                width: 1px;
+                                                opacity: 0;
+                                            }
+
+                                            & .pause[class] {
+                                                font-size: 1rem;
+
+                                                display: inline-block;
+                                                opacity: 1;
+                                            }
+
+                                            &[class] > .play[class] {
+                                                opacity: 0;
+                                                display: none;
+                                            }
+                                        }
+
+                                        /* & button.replay[aria-pressed] :is(.play, .pause) {
+                                            display: none !important;
+                                            opacity: 0 !important;
+                                        } */
+                                        & button.replay[aria-pressed]:has(.replay) {
+                                            :is(.play, .pause) {
+                                                display: none !important;
+                                                opacity: 0 !important;
+                                            }
+                                            &:after {
+                                                position: absolute;
+                                                height: 1px;
+                                                width: 1px;
+                                                opacity: 0;
+                                            }
+                                            & .replay {
+                                                font-size: 1.5rem;
+                                                display: inline-block;
+                                                opacity: 1;
+                                            }
+                                        }
+                                    }
+                                </style>
 
                                 <video
-                                    src="./mediaplayback-demo-assets/Apple-Restore-Fund-hero.mp4"
-                                    preload="auto" muted autoplay
+                                    style="margin:0"
+                                    id="redwood"
                                     width="1440"
                                     height="810"
-                                    style="width: 1440px; height: 810px;">
+                                    loading="lazy"
+                                    src="./mediaplayback-demo-assets/Apple-Restore-Fund-redwood-tree-measuring.mp4"
+                                    preload="auto" muted playsinline autoplay>
                                 </video>
 
-                                <button>Loading</button>
-
+                                <div class="custom-playback-group">
+                                    <button class="custom-styles custom-playback" data-foobar="1">
+                                        <span class="play" style="font-size:1.5rem; color: red">&#9654;</span>
+                                        <!-- <span class="pause" style="font-size:1.75rem; color: yellow">&#x23F8;</span> -->
+                                        <!-- <span class="loading">☀️</span> -->
+                                        <span class="replay" style="font-size:1.5rem; color:aquamarine">&#8634;</span>
+                                    </button>
+                                </div>
                             </kelp-media-playback>
 
                         </div>
 
-                        <p>
-                            <small>The button is automatically created because no child button element is provided.</small>
-                        </p>
-
-                    </div>
-
-                    <div role="listitem" class="margin-end-xl">
-
-                        <div style="position: relative;">
-
-                            <kelp-media-playback target="kelp-video2">
-                                <button>&#128128;</button>
-                            </kelp-media-playback>
-
-                            <video
-                                id="kelp-video2"
-                                src="./mediaplayback-demo-assets/Apple-Restore-Fund-redwood-tree-measuring.mp4"
-                                muted preload="auto" >
-                            </video>
-
-                        </div>
-
+                        <br>
                         <p><small>Enhance the child element provided</small></p>
 
-                    </div>
-
-                    <div role="listitem">
-                        <div style="position: relative;">
-
-                            <kelp-media-playback>
-                                <video
-                                    src="https://marfabdev.wpenginepowered.com/wp-content/uploads/2024/04/Joren_Falls_Izu_Jap.mp4"
-                                    muted preload="auto"
-                                    style="margin:0">
-                                </video>
-                            </kelp-media-playback>
-
-                        </div>
-                        <p><small>Has a nested video element. Enhance the child element provided</small></p>
-                    </div>
-
-                    <!-- Audio -->
-
-                    <div role="listitem">
-                        <div style="position: relative; font-size:40px">
-
-                            <audio id="ultra" src="https://www.dropbox.com/scl/fi/vapy26yc4i6zp2aeg5r28/02-Track-02.m4a?rlkey=hv3loa1nosc3trqjxrmpwv80d&st=ka8m75lo&raw=1"></audio>
-
-                            <kelp-media-playback target="ultra" reveal>
-                                <div style="background-color:white; padding:1rem; border-radius:20px; display: flex; align-items: center;">
-                                    <button style="position:relative; inset:auto">
-
-                                        <svg role="img" aria-label="Loading" class="kelp-media-is-loading" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M512.056 908.647c-84.516 0-166.416-27.084-235.266-78.637-84.15-63.028-138.741-155.109-153.675-259.2-14.934-104.119 11.559-207.816 74.588-291.994 130.162-173.812 377.438-209.25 551.194-79.172 72.844 54.562 124.819 133.228 146.391 221.484 3.684 15.103-5.569 30.319-20.644 34.003-15.075 3.572-30.319-5.541-34.003-20.644-18.45-75.628-63-143.044-125.466-189.816-148.866-111.516-360.844-81.112-472.444 67.866-54.028 72.141-76.725 161.016-63.9 250.256 12.797 89.241 59.597 168.131 131.737 222.131 149.006 111.656 360.956 81.197 472.5-67.781 29.194-39.009 49.219-82.716 59.456-129.938 3.319-15.188 18.366-24.834 33.441-21.544 15.188 3.291 24.834 18.281 21.544 33.441-12.009 55.181-35.353 106.2-69.413 151.762-63.028 84.15-155.109 138.769-259.256 153.675-18.984 2.756-37.941 4.106-56.784 4.106z"  />
-                                        </svg>
-
-                                    </button>
-
-                                </div>
-                            </kelp-media-playback>
-
-                        </div>
-                        <p><small>User supplied loading icon</small></p>
-                    </div>
-
-                    <div role="listitem">
-                        <div style="position: relative; font-size:40px">
-
-                            <audio id="ultra2" src="https://www.dropbox.com/scl/fi/vapy26yc4i6zp2aeg5r28/02-Track-02.m4a?rlkey=hv3loa1nosc3trqjxrmpwv80d&st=ka8m75lo&raw=1"></audio>
-
-                            <kelp-media-playback target="ultra2">
-                                <div style="background-color:white; padding:1rem; border-radius:20px; display: flex; align-items: center;">
-                                    <button style="position:relative; inset:auto">
-
-                                        <!-- <svg role="img" aria-label="Loading" class="kelp-media-is-loading" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M512.056 908.647c-84.516 0-166.416-27.084-235.266-78.637-84.15-63.028-138.741-155.109-153.675-259.2-14.934-104.119 11.559-207.816 74.588-291.994 130.162-173.812 377.438-209.25 551.194-79.172 72.844 54.562 124.819 133.228 146.391 221.484 3.684 15.103-5.569 30.319-20.644 34.003-15.075 3.572-30.319-5.541-34.003-20.644-18.45-75.628-63-143.044-125.466-189.816-148.866-111.516-360.844-81.112-472.444 67.866-54.028 72.141-76.725 161.016-63.9 250.256 12.797 89.241 59.597 168.131 131.737 222.131 149.006 111.656 360.956 81.197 472.5-67.781 29.194-39.009 49.219-82.716 59.456-129.938 3.319-15.188 18.366-24.834 33.441-21.544 15.188 3.291 24.834 18.281 21.544 33.441-12.009 55.181-35.353 106.2-69.413 151.762-63.028 84.15-155.109 138.769-259.256 153.675-18.984 2.756-37.941 4.106-56.784 4.106z"  />
-                                        </svg> -->
-
-                                    </button>
-
-                                </div>
-                            </kelp-media-playback>
-
-                        </div>
-                        <p><small>Created loading icon</small></p>
                     </div>
 
                 </div>

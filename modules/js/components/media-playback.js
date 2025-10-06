@@ -26,7 +26,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         isPlaying: false,
     };
 
-    loadingDelayDefaultTime = 750;
+    #loadingDelayDefaultTime = 750;
 
     #hasUserProvidedButton = false;
 
@@ -67,13 +67,27 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             return;
         }
 
-        this.reveal();
+        /*
+            NOTE:
+            IF a button is created (bc user did not provide) then reveal()
+            is called before the created button is attached to the DOM
+        */
+        //this.reveal();
 
         /* TODO: Loading state:
             - no play or pause icon, instead a loading icon
         */
         // this.whileLoading()
-        await this.loadingDelay();
+
+        // Delays the addition of hte "media-is-ready" attribute. Moving this down the line will have no effect bc mediaIsReady()
+        // has already been called.
+        console.log(this.querySelector('button'));
+        if ( this.querySelector('button') ) {
+            await this.loadingDelay();
+        } else {
+
+            console.log('No loadingDelay applied because no button is present');
+        }
 
         // Media Ready State: Check if Media is ready to play...
         await this.mediaIsReady();
@@ -138,6 +152,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             // Use the provided button element; This will be used later by setPlayBackButton()
             this.playbackButton = this.querySelector('button');
 
+            // If the reveal attribute is set, call reveal() to apply the CSS custom properties
+            this.reveal();
+
         } else {
 
             // Will later use createPlayBackButton()
@@ -166,6 +183,23 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             this.#hasChildMedia = this.targetMedia !== null ? true : false;
 
+            if ( this.targetMedia !== null && ! this.targetMedia.getAttribute('id')  ) {
+
+                let id = Math.floor(Math.random() * 100000);
+
+                // Make sure it's not already in use
+                let suffix = 0;
+                let existing = document.querySelector(`#kelp_${id}`);
+                while (existing) {
+                    suffix++;
+                    existing = document.querySelector(`#kelp_${id}_${suffix}`);
+                }
+
+                // Set the ID on the element
+                this.targetMedia.setAttribute('id', `kelp_${id}${suffix ? `_${suffix}` : ''}`);
+
+            }
+
         }
 
         // Use the target attr to get the targeted media element
@@ -181,6 +215,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         else {
 
             if ( typeof debug === 'function' ) {
+                console.warn( this, 'No target media found. Add a \'target\' attribute with a string value to the kelp-media-playback element; Use the same value from the target attribute as the value of the id attribute for the video or audio element.' );
                 debug( this, `
                     Target attribute is not a valid HTMLMediaElement.
                     Check the target attribute is set and ensure it can be used to target a HTMLMediaElement using its ID or a selector.
@@ -233,6 +268,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         */
         if ( this.#hasUserProvidedButton ) {
 
+            // playbackButton exits so add the reveal styles if needed
+            // this.reveal();
+
             this.setPlayBackButton();
 
         }
@@ -245,6 +283,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             this.createPlayBackButton();
 
             this.appendChild( this.playbackButton );
+
+            // wait until the button is in the DOM then apply reveal styles if needed
+            this.reveal();
 
         }
 
@@ -364,7 +405,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         // console.log(`set button, this.mediaStatus.isPlaying ${this.mediaStatus.isPlaying}`);
 
         if ( this.playbackButton.innerHTML.trim() !== '' ) {
-            this.playbackButton.innerHTML = '';
+            //this.playbackButton.innerHTML = '';
         }
 
         let setPressedState = this.mediaStatus.isPlaying ? 'false' : 'true';
@@ -503,7 +544,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         Attribute loading-delay
         NOTE: delays mediaIsReady() which is needed for the revealAttr to display the playback button
     */
-    loadingDelay (defaultTime = this.loadingDelayDefaultTime) {
+    loadingDelay (defaultTime = this.#loadingDelayDefaultTime) {
 
         let loadingDelayAttr = '';
 
@@ -516,9 +557,6 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         if ( this.hasAttribute('loading-delay') ) {
 
             loadingDelayAttr = this.getAttribute("loading-delay");
-
-            // now loadingDelayAttr is just the numeric value in ms
-                console.log('loadingDelayAttr: ', !!loadingDelayAttr);
 
             if ( loadingDelayAttr ) {
                 const unit = getTimeUnit(loadingDelayAttr);
@@ -557,7 +595,6 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             if (displayTiming) this.playbackButton?.style?.setProperty( '--js-button-display-timing', `${hasTimeUnit(displayTiming) ? displayTiming : `${displayTiming}ms`}`);
 
             if (displayDelay) this.playbackButton?.style?.setProperty( '--js-button-display-delay', `${hasTimeUnit(displayDelay) ? displayDelay : `${displayDelay}ms`}`);
-
         }
     }
 

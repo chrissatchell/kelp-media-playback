@@ -14,7 +14,7 @@
         --icon-replay-size: calc(24/16*1rem);
         --icon-loading-size: calc(24/16*1rem);
 
-        --icon-display-timing: 1s;
+        --icon-display-timing: 0.2s;
         --icon-display-delay: 0s;
 
         --button-color: white;
@@ -25,18 +25,27 @@
         --button-size: calc(42/16*1rem);
         --button-filter: blur(4px);
 
-        --button-display-timing: 0.5s;
+        /* Reveal */
+        --button-display-timing: 0.25s;
         --button-display-delay: 0.1s;
         --button-display-transform-start: scale(0.94);
         --button-display-transform-end: scale(1);
 
+        display: block;
+
+        & > button {
+            position: absolute;
+            bottom: 0.85rem;
+            right: 0.75rem;
+        }
+
         & button {
+            width: var(--button-size);
+            height: var(--button-size);
             border: var(--button-border);
             background-color: var(--button-bg);
             backdrop-filter: var(--button-filter);
             color: var(--button-color);
-            width: var(--button-size);
-            height: var(--button-size);
 
             padding: 0;
             display: flex;
@@ -46,9 +55,6 @@
             border-radius: 9999px;
             cursor: pointer;
 
-            position: absolute;
-            bottom: 1.2rem;
-            right: 0.75rem;
             z-index: 2;
 
             font-size: 0; /* NOTE: hide user provided text */
@@ -76,6 +82,7 @@
         }
 
         & :is(video, audio) {
+            display: block; /* remove the baseline gap */
             margin-block-end: 0;
         }
 
@@ -84,26 +91,6 @@
 }
 
 @layer kelp.state {
-
-    .kelp-media-is-loading {
-        fill: currentColor;
-        transform-box: fill-box; /* make transform-origin work as expected in SVG */
-        animation: mediaLoadingSpin 1s linear infinite;
-        will-change: transform;      /* nudge GPU compositing */
-
-        display: inline-block;
-        position: relative;
-        width: var(--icon-loading-size, 1em);
-        height: var(--icon-loading-size), 1em;
-        vertical-align: middle;
-        overflow: hidden;
-
-        @media (prefers-reduced-motion: reduce) {
-            & {
-                animation: mediaLoadingSpin 2.5s linear infinite;
-            }
-        }
-    }
 
 	kelp-media-playback {
 
@@ -117,6 +104,29 @@
             &:focus-visible {
                 box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
                 border-color: white !important;
+            }
+
+
+            .kelp-media-is-loading,
+            .is-loading,
+            .loading {
+                fill: currentColor;
+                transform-box: fill-box; /* make transform-origin work as expected in SVG */
+                animation: mediaLoadingSpin 1s linear infinite;
+                will-change: transform;      /* nudge GPU compositing */
+
+                display: inline-flex;
+                position: relative;
+                width: var(--icon-loading-size, 1em);
+                height: var(--icon-loading-size), 1em;
+                vertical-align: middle;
+                overflow: hidden;
+
+                @media (prefers-reduced-motion: reduce) {
+                    & {
+                        animation: mediaLoadingSpin 2.5s linear infinite;
+                    }
+                }
             }
 
         }
@@ -143,7 +153,7 @@
                 .loading
             )::after {
                 background-image: none;
-                display:none;
+                display: none;
             }
         }
 
@@ -155,8 +165,8 @@
                 hide early because there is a small delay before the element is removed form the DOM
             */
             & :is(.kelp-media-is-loading, .is-loading, .loading) {
-                display: none;
-                animation: none;
+                /* display: none; */
+                /* animation: none; */
             }
 
             /* Video is playing and the pause button is not pressed (show the pause icon). */
