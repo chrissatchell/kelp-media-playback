@@ -5,13 +5,17 @@
 @layer kelp.core {
 
     kelp-media-playback {
+        --icon-loading: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath fill='white' d='M512.056 908.647c-84.516 0-166.416-27.084-235.266-78.637-84.15-63.028-138.741-155.109-153.675-259.2-14.934-104.119 11.559-207.816 74.588-291.994 130.162-173.812 377.438-209.25 551.194-79.172 72.844 54.562 124.819 133.228 146.391 221.484 3.684 15.103-5.569 30.319-20.644 34.003-15.075 3.572-30.319-5.541-34.003-20.644-18.45-75.628-63-143.044-125.466-189.816-148.866-111.516-360.844-81.112-472.444 67.866-54.028 72.141-76.725 161.016-63.9 250.256 12.797 89.241 59.597 168.131 131.737 222.131 149.006 111.656 360.956 81.197 472.5-67.781 29.194-39.009 49.219-82.716 59.456-129.938 3.319-15.188 18.366-24.834 33.441-21.544 15.188 3.291 24.834 18.281 21.544 33.441-12.009 55.181-35.353 106.2-69.413 151.762-63.028 84.15-155.109 138.769-259.256 153.675-18.984 2.756-37.941 4.106-56.784 4.106z'/%3E%3C/svg%3E");
         --icon-play: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 384 512'%3E%3Cpath fill='white' d='M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z'/%3E%3C/svg%3E");;
         --icon-pause: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='1em' viewBox='0 0 320 512'%3E%3Cpath fill='white' d='M48 64C21.5 64 0 85.5 0 112V400c0 26.5 21.5 48 48 48H80c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H48zm192 0c-26.5 0-48 21.5-48 48V400c0 26.5 21.5 48 48 48h32c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48H240z'/%3E%3C/svg%3E");
         --icon-replay: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path fill="white" d="M12,20.75A7.26,7.26,0,0,1,4.75,13.5a.75.75,0,0,1,1.5,0A5.75,5.75,0,1,0,12,7.75H9.5a.75.75,0,0,1,0-1.5H12a7.25,7.25,0,0,1,0,14.5Z"/><path fill="white" d="M12,10.75a.74.74,0,0,1-.53-.22l-3-3a.75.75,0,0,1,0-1.06l3-3a.75.75,0,1,1,1.06,1.06L10.06,7l2.47,2.47a.75.75,0,0,1,0,1.06A.74.74,0,0,1,12,10.75Z"/></g></svg>');
-        /* --icon-replay: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='white' %3E%3Cpath d='M472 224c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24s-24 10.7-24 24v80.1l-20-23.5C387 63.4 325.1 32 256 32C132.3 32 32 132.3 32 256s100.3 224 224 224c50.4 0 97-16.7 134.4-44.8c10.6-8 12.7-23 4.8-33.6s-23-12.7-33.6-4.8C332.2 418.9 295.7 432 256 432c-97.2 0-176-78.8-176-176s78.8-176 176-176c54.3 0 102.9 24.6 135.2 63.4l.1 .2 0 0L418.9 176H328c-13.3 0-24 10.7-24 24s10.7 24 24 24H472z'/%3E%3C/svg%3E"); */
 
         --icon-size: calc(14/16*1rem);
         --icon-replay-size: calc(24/16*1rem);
+        --icon-loading-size: calc(24/16*1rem);
+
+        --icon-display-timing: 1s;
+        --icon-display-delay: 0s;
 
         --button-color: white;
         --button-bg: #00000090;
@@ -21,7 +25,7 @@
         --button-size: calc(42/16*1rem);
         --button-filter: blur(4px);
 
-        --button-display-timing: 0.25s;
+        --button-display-timing: 0.5s;
         --button-display-delay: 0.1s;
         --button-display-transform-start: scale(0.94);
         --button-display-transform-end: scale(1);
@@ -47,15 +51,7 @@
             right: 0.75rem;
             z-index: 2;
 
-            &:hover {
-                box-shadow: 0 0 0 1px var(--button-color);
-                border-color: var(--button-color) !important;
-            }
-
-            &:focus-visible {
-                box-shadow: 0 0 0 3px var(--button-color), 0 0 0 6px #4285F4;
-                border-color: var(--button-color) !important;
-            }
+            font-size: 0; /* NOTE: hide user provided text */
 
             &::after {
                 content: '';
@@ -68,6 +64,9 @@
                 color: var(--button-color);
                 transform: translate(0, 0);
                 pointer-events: none;
+
+                opacity: 0;
+                transition: opacity var(--icon-display-timing) var(--icon-display-delay);
             }
         }
 
@@ -76,26 +75,39 @@
             top: 1rem;
         }
 
+        & :is(video, audio) {
+            margin-block-end: 0;
+        }
+
     }
 
 }
 
 @layer kelp.state {
 
+    .kelp-media-is-loading {
+        fill: currentColor;
+        transform-box: fill-box; /* make transform-origin work as expected in SVG */
+        animation: mediaLoadingSpin 1s linear infinite;
+        will-change: transform;      /* nudge GPU compositing */
+
+        display: inline-block;
+        position: relative;
+        width: var(--icon-loading-size, 1em);
+        height: var(--icon-loading-size), 1em;
+        vertical-align: middle;
+        overflow: hidden;
+
+        @media (prefers-reduced-motion: reduce) {
+            & {
+                animation: mediaLoadingSpin 2.5s linear infinite;
+            }
+        }
+    }
+
 	kelp-media-playback {
 
         & button {
-
-            /*
-                TODO: Default state.
-                    -- Show loading?
-                    -- Inert attr?
-                    -- pointer events none?
-                    -- opacity 0 and/or display none?
-            */
-            &::after {
-                /* background-image: var(--icon-pause); */
-            }
 
             &:hover {
                 box-shadow: 0 0 0 1px white;
@@ -109,17 +121,55 @@
 
         }
 
+        /* Loading */
+        &[loading-delay]:not([media-is-ready]) button {
+            pointer-events: none;
+            opacity: 0.8;
+
+            &::after {
+                background-image: var(--icon-loading);
+                background-size: var(--icon-loading-size);
+                animation: mediaLoadingSpin 1s linear infinite;
+                will-change: transform;      /* nudge GPU compositing */
+
+                opacity: 1;
+                transition: unset;
+            }
+
+            /* Has loading icon set as a child of button */
+            &:has(
+                .kelp-media-is-loading,
+                .is-loading,
+                .loading
+            )::after {
+                background-image: none;
+                display:none;
+            }
+        }
+
+        /* Media ready */
         &[media-is-ready] button {
+
+            /*
+                If a button is provided and a loading icon is supplied then
+                hide early because there is a small delay before the element is removed form the DOM
+            */
+            & :is(.kelp-media-is-loading, .is-loading, .loading) {
+                display: none;
+                animation: none;
+            }
 
             /* Video is playing and the pause button is not pressed (show the pause icon). */
             &[aria-pressed="false"]::after {
                 background-image: var(--icon-pause);
+                opacity: 1;
             }
 
             /* Video is paused and the pause button is pressed (show the play icon). */
             &[aria-pressed="true"]::after {
                 background-image: var(--icon-play);
                 transform: translate(1px, 0);
+                opacity: 1;
             }
 
             /* Video has played to the end and is ready to be replayed (show the replay icon). */
@@ -133,23 +183,33 @@
 
     }
 
-    kelp-media-playback {
+    kelp-media-playback[reveal] {
         & button {
             display: none;
             opacity: 0;
             transform: var(--button-display-transform-start);
-            transition: all var(--button-display-timing) var(--button-display-delay) ease-in-out;
+
+            /* NOTE: Using 'all' is an issue */
+            transition:
+                opacity var(--js-button-display-timing, var(--button-display-timing)) var(--js-button-display-delay, var(--button-display-delay)) ease-in-out,
+                transform var(--js-button-display-timing, var(--button-display-timing)) var(--js-button-display-delay, var(--button-display-delay)) ease-in-out;
         }
 
         &[media-is-ready] button {
             display: block;
             opacity: 1;
             transform: var(--button-display-transform-end);
+
             @starting-style {
                 opacity: 0;
                 transform: var(--button-display-transform-start);
             }
         }
+    }
+
+    @keyframes mediaLoadingSpin {
+        from { transform: rotate(0deg) }
+        to { transform: rotate(360deg) }
     }
 
 }

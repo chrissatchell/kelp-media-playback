@@ -12,3 +12,4 @@ node_modules
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/mediaplayback-demo-assets/lesson1.mp4
