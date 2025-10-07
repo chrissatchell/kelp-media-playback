@@ -47,10 +47,11 @@
             backdrop-filter: var(--button-filter);
             color: var(--button-color);
 
-            padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+
+            padding: 0;
 
             border-radius: 9999px;
             cursor: pointer;
@@ -92,6 +93,8 @@
 
 @layer kelp.state {
 
+    /* Defaults */
+
 	kelp-media-playback {
 
         & button {
@@ -105,30 +108,6 @@
                 box-shadow: 0 0 0 3px white, 0 0 0 6px #4285F4;
                 border-color: white !important;
             }
-
-
-            .kelp-media-is-loading,
-            .is-loading,
-            .loading {
-                fill: currentColor;
-                transform-box: fill-box; /* make transform-origin work as expected in SVG */
-                animation: mediaLoadingSpin 1s linear infinite;
-                will-change: transform;      /* nudge GPU compositing */
-
-                display: inline-flex;
-                position: relative;
-                width: var(--icon-loading-size, 1em);
-                height: var(--icon-loading-size), 1em;
-                vertical-align: middle;
-                overflow: hidden;
-
-                @media (prefers-reduced-motion: reduce) {
-                    & {
-                        animation: mediaLoadingSpin 2.5s linear infinite;
-                    }
-                }
-            }
-
         }
 
         /* Loading */
@@ -152,22 +131,13 @@
                 .is-loading,
                 .loading
             )::after {
-                background-image: none;
-                display: none;
+                /* background-image: none; */
+                /* display: none; */
             }
         }
 
         /* Media ready */
         &[media-is-ready] button {
-
-            /*
-                If a button is provided and a loading icon is supplied then
-                hide early because there is a small delay before the element is removed form the DOM
-            */
-            & :is(.kelp-media-is-loading, .is-loading, .loading) {
-                /* display: none; */
-                /* animation: none; */
-            }
 
             /* Video is playing and the pause button is not pressed (show the pause icon). */
             &[aria-pressed="false"]::after {
@@ -193,6 +163,9 @@
 
     }
 
+
+    /* Reveal defaults */
+
     kelp-media-playback[reveal] {
         & button {
             display: none;
@@ -216,6 +189,172 @@
             }
         }
     }
+
+
+    /* Custom user icons */
+
+    kelp-media-playback {
+
+        /* Button has children */
+        & button:has(*) {
+            text-align: center;
+
+            :where(*) { font-size: var(--icon-font-size, 1rem); }
+
+            &:has(.play) .play,
+            &:has(.pause) .pause,
+            &:has(.replay) .replay {
+                display: none;
+                opacity: 0;
+
+                &:has(svg:not([hidden])) {
+                    width: var(--custom-icon-size, var(--icon-loading-size, 1rem));
+                    height: var(--custom-icon-size, var(--icon-loading-size, 1rem));
+                }
+
+                svg {
+                    fill: currentColor;
+                }
+            }
+
+            &::after,
+            &.replay::after {
+                transition: none;
+            }
+
+        }
+
+
+        /*
+            Loading
+            TODO: --loading-icon-size, --loading-icon-color
+        */
+
+        & button .loading {
+            position: relative;
+
+            width: var(--custom-icon-size, var(--icon-loading-size, 1rem));
+            height: var(--custom-icon-size, var(--icon-loading-size, 1rem));
+
+            display: inline-flex;
+            vertical-align: middle;
+            overflow: hidden;
+
+            fill: currentColor;
+            transform-box: fill-box; /* make transform-origin work as expected in SVG */
+            animation: mediaLoadingSpin 1s linear infinite;
+            will-change: transform;      /* nudge GPU compositing */
+
+            /* Supports translate as a separate property */
+            @supports (translate: 10px 10px) {
+                & {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    translate: -50% -50%;
+                }
+            }
+
+
+            @media (prefers-reduced-motion: reduce) {
+                & {
+                    animation: mediaLoadingSpin 2.5s linear infinite;
+                }
+            }
+        }
+
+        &:not([media-is-ready]) button:has(.loading)::after {
+            position: absolute;
+            height: 1px;
+            width: 1px;
+            opacity: 0;
+        }
+
+        &:not([media-is-ready]) .loading[class] {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+        }
+
+        /* Hide loading when the media is ready */
+        &[media-is-ready] .loading[class] {
+            opacity: 0;
+            display: none;
+            animation: none;
+        }
+
+
+        /*
+            Play, pause, replay
+        */
+        &[media-is-ready] {
+
+            /* Play */
+            & button:not(.replay)[aria-pressed="true"]:has(.play) {
+                &:after {
+                    position: absolute;
+                    height: 1px;
+                    width: 1px;
+                    opacity: 0;
+                }
+
+                &[class] > .play[class] {
+                    opacity: 1;
+                    display: inline-flex;
+                    justify-content: center;
+                }
+
+                & .pause[class] {
+                    display: none;
+                    opacity: 0;
+                }
+            }
+
+            /* Pause */
+            & button[aria-pressed="false"]:has(.pause)  {
+                &:after {
+                    position: absolute;
+                    height: 1px;
+                    width: 1px;
+                    opacity: 0;
+                }
+
+                & .pause[class] {
+                    opacity: 1;
+                    display: inline-flex;
+                    justify-content: center;
+                }
+
+                &[class] > .play[class] {
+                    opacity: 0;
+                    display: none;
+                }
+            }
+
+            /* Replay */
+            & button.replay[aria-pressed]:has(.replay) {
+                :is(.play, .pause) {
+                    display: none !important;
+                    opacity: 0 !important;
+                }
+                &:after {
+                    position: absolute;
+                    height: 1px;
+                    width: 1px;
+                    opacity: 0;
+                }
+                & .replay {
+                    opacity: 1;
+                    display: inline-flex;
+                    justify-content: center;
+                }
+            }
+
+        }
+
+    }
+
 
     @keyframes mediaLoadingSpin {
         from { transform: rotate(0deg) }

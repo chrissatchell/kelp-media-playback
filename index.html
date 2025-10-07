@@ -31,10 +31,14 @@
 
                         <div style="position: relative;">
 
-                            <kelp-media-playback class="custom" target="redwood" loading-delay="2s">
+                            <kelp-media-playback class="custom" reveal>
 
                                 <style>
+                                    [media-has-controls] .custom-playback-group {
+                                        bottom: 3.5rem;
+                                    }
                                     .custom-playback-group {
+                                        --gap-x: 1rem;
                                         padding: 0.5rem;
                                         /* background-color: #FFFFFF10; */
                                         border-radius: 40px;
@@ -42,166 +46,102 @@
                                         border-bottom: 1px solid #FFFFFF20;
                                         border-right: 1px solid #FFFFFF20;
                                         border-left: 1px solid #FFFFFF20;
-                                        text-align: right;
-                                        /* margin-inline: 1rem; */
-                                        display: block;
+                                        text-align: center;
+
+                                        display: flex;
+                                        gap: 0.5rem var(--gap-x);
+                                        align-items: center;
+                                        justify-content: center;
 
                                         position: absolute;
                                         bottom: 1rem;
                                         left: 50%;
                                         width: min(calc(100% - 2rem), 610px);
                                         transform: translateX(-50%);
-                                    }
-                                    .custom-playback {
-                                        --button-border: none;
-                                        --button-bg: #FFFFFF20;
-                                        display: inline-block;
-                                        margin-right: 0.25rem;
-                                        /* inset: auto auto 0.85rem 0.75rem; */
-                                    }
-                                </style>
 
-                                <style>
-                                    kelp-media-playback {
+                                        & div {
+                                            flex: 1 1 auto;
 
-                                        /* Hide all children of the button element if they exist */
-                                        & button:has(*) {
-                                            position: relative;
-
-                                            * {
-                                                font-size: 1rem;
-                                            }
-
-                                            &:has(.play) .play,
-                                            &:has(.pause) .pause,
-                                            &:has(.replay) .replay {
-                                                display: none;
-                                                opacity: 0;
-                                                font-size: 1rem;
-                                                transition: opacity 1s 0s;
-                                            }
-
-                                            &.replay::after {
-                                                transition: none;
-                                            }
-
-                                            &::after {
-                                                transition: none;
+                                            p {
+                                                text-shadow: 0 1px 0 #00000060;
                                             }
                                         }
 
-                                    }
-
-                                    /* Loading */
-                                    kelp-media-playback {
-
-                                        /* While loading (ie :not([media-is-ready]) ) then show the  */
-                                        &:not([media-is-ready]) .loading[class] {
-                                            opacity: 1;
-
-                                            width: 30px;
-                                            height: 30px;
-                                            font-size: 30px;
-                                            /* outline: 2px solid #FFFFFF80; */
-                                            justify-content: center;
-                                            align-items: center;
+                                        &:has(.custom-playback) div {
+                                            padding-left: calc( var(--button-size) + var(--gap-x) );
                                         }
 
-                                        /* Hide loading when the media is ready */
-                                        &[media-is-ready] .loading[class] {
-                                            opacity: 0;
-                                            display: none;
-                                            animation: none;
-                                        }
-                                    }
+                                        & .custom-playback {
+                                            flex: 0 1 auto;
+                                            --button-border: none;
+                                            --button-bg: #FFFFFF20;
+                                            display: inline-block;
+                                            margin-right: 0.25rem;
+                                            /* inset: auto auto 0.85rem 0.75rem; */
 
-                                    /* Play/Pause */
-                                    kelp-media-playback[media-is-ready] {
-
-                                        /* Play */
-                                        & button:not(.replay)[aria-pressed="true"]:has(.play) {
-                                            &:after {
-                                                position: absolute;
-                                                height: 1px;
-                                                width: 1px;
-                                                opacity: 0;
+                                            & :is(.play, .pause):has(svg:not([hidden])) {
+                                                --custom-icon-size: 2rem;
                                             }
 
-                                            &[class] > .play[class] {
-                                                opacity: 1;
-                                                display: inline-block;
+                                            & .pause__entity-icon {
+                                                font-size: 1.75rem;
                                             }
 
-                                            & .pause[class] {
-                                                display: none;
-                                                opacity: 0;
-                                            }
-                                        }
-
-                                        /* Pause */
-                                        & button[aria-pressed="false"]:has(.pause)  {
-                                            &:after {
-                                                position: absolute;
-                                                height: 1px;
-                                                width: 1px;
-                                                opacity: 0;
-                                            }
-
-                                            & .pause[class] {
-                                                font-size: 1rem;
-
-                                                display: inline-block;
-                                                opacity: 1;
-                                            }
-
-                                            &[class] > .play[class] {
-                                                opacity: 0;
-                                                display: none;
-                                            }
-                                        }
-
-                                        /* & button.replay[aria-pressed] :is(.play, .pause) {
-                                            display: none !important;
-                                            opacity: 0 !important;
-                                        } */
-                                        & button.replay[aria-pressed]:has(.replay) {
-                                            :is(.play, .pause) {
-                                                display: none !important;
-                                                opacity: 0 !important;
-                                            }
-                                            &:after {
-                                                position: absolute;
-                                                height: 1px;
-                                                width: 1px;
-                                                opacity: 0;
-                                            }
-                                            & .replay {
+                                            & .play__entity-icon {
                                                 font-size: 1.5rem;
-                                                display: inline-block;
-                                                opacity: 1;
                                             }
                                         }
+                                    }
+
+                                    .play {
+                                        --icon-font-size: 1.3rem;
                                     }
                                 </style>
 
                                 <video
                                     style="margin:0"
-                                    id="redwood"
                                     width="1440"
                                     height="810"
                                     loading="lazy"
                                     src="./mediaplayback-demo-assets/Apple-Restore-Fund-redwood-tree-measuring.mp4"
-                                    preload="auto" muted playsinline autoplay>
+                                    preload="auto" muted playsinline >
                                 </video>
 
-                                <div class="custom-playback-group">
-                                    <button class="custom-styles custom-playback" data-foobar="1">
-                                        <span class="play" style="font-size:1.5rem; color: red">&#9654;</span>
-                                        <!-- <span class="pause" style="font-size:1.75rem; color: yellow">&#x23F8;</span> -->
-                                        <!-- <span class="loading">☀️</span> -->
-                                        <span class="replay" style="font-size:1.5rem; color:aquamarine">&#8634;</span>
+                                <button>
+                                    <span class="play">
+                                        &#9654;
+                                    </span>
+                                </button>
+
+                                <!-- <div class="custom-playback-group">
+                                    <div>
+                                        <p>Redwoods</p>
+                                    </div>
+                                    <button class="custom-playback" data-foobar="1" onclick="this.dataset.foobar = parseInt(this.dataset.foobar) + 1">
+
+                                        <span class="loading">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                                <path d="M286.7 96.1C291.7 113 282.1 130.9 265.2 135.9C185.9 159.5 128.1 233 128.1 320C128.1 426 214.1 512 320.1 512C426.1 512 512.1 426 512.1 320C512.1 233.1 454.3 159.6 375 135.9C358.1 130.9 348.4 113 353.5 96.1C358.6 79.2 376.4 69.5 393.3 74.6C498.9 106.1 576 204 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 204 141.1 106.1 246.9 74.6C263.8 69.6 281.7 79.2 286.7 96.1z"/>
+                                            </svg>
+                                        </span>
+
+                                        <span class="play">
+                                            <span hidden class="play__entity-icon">&#9654;</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                                <path d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM276.5 211.5C269.1 207 259.8 206.8 252.2 211C244.6 215.2 240 223.3 240 232L240 408C240 416.7 244.7 424.7 252.3 428.9C259.9 433.1 269.1 433 276.6 428.4L420.6 340.4C427.7 336 432.1 328.3 432.1 319.9C432.1 311.5 427.7 303.8 420.6 299.4L276.6 211.4zM362 320L288 365.2L288 274.8L362 320z"/>
+                                            </svg>
+                                        </span>
+
+                                        <span class="pause">
+                                            <span class="pause__entity-icon">⏸</span>
+                                            <svg hidden xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                                <path d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM288 248C288 234.7 277.3 224 264 224C250.7 224 240 234.7 240 248L240 392C240 405.3 250.7 416 264 416C277.3 416 288 405.3 288 392L288 248zM400 248C400 234.7 389.3 224 376 224C362.7 224 352 234.7 352 248L352 392C352 405.3 362.7 416 376 416C389.3 416 400 405.3 400 392L400 248z"/>
+                                            </svg>
+                                        </span>
+
+                                        <span class="replay" style="font-size:1.25rem;">&#8634;</span>
                                     </button>
-                                </div>
+                                </div> -->
                             </kelp-media-playback>
 
                         </div>
