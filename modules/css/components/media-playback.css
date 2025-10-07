@@ -100,8 +100,8 @@
         & button {
 
             &:hover {
-                box-shadow: 0 0 0 1px white;
-                border-color: white !important;
+                box-shadow: 0 0 0 1px var(--button-hover-border, white);
+                border-color: var(--button-hover-border) !important;
             }
 
             &:focus-visible {
