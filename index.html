@@ -153,163 +153,24 @@
                                     </button>
 
                                     <div class="progress-countdown">
-                                        <style>
-                                            .progress-countdown {
-                                                position: absolute;
-                                                bottom: 0;
-                                                padding: 0 !important;
-                                                margin: 0;
 
-                                                display: flex;
-                                                justify-content: center;
-                                                align-items: center;
+                                        <div role="status" aria-live="polite">
+                                            <p aria-hidden="true" class="progress-countdown-timecaption"></p>
+                                            <p>loading</p>
+                                        </div>
 
-                                                & h2 {
-                                                    width: 160px;
-                                                    position: absolute;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                }
-
-                                                & svg {
-                                                    /* width: var(--button-size);
-                                                    height: var(--button-size); */
-                                                    transform: rotate(-90deg);
-                                                }
-
-                                                & .circle_animation {
-                                                    stroke-dasharray: var(--circumference); /* this value is the pixel circumference of the circle */
-                                                    stroke-dashoffset: 0;
-                                                    transition: all var(--countdown-time, 1s) linear;
-                                                }
-                                            }
-                                        </style>
-                                        <h2>loading</h2>
-                                        <svg width="160" height="160" xmlns="http://www.w3.org/2000/svg">
-                                            <circle id="circle" class="circle_animation" r="69.85699" cy="81" cx="81" stroke-width="8" stroke="#6fdb6f" fill="none"/>
+                                        <svg width="53" height="53" viewBox="0 0 53 53">
+                                            <circle
+                                                id="circle"
+                                                class="circle_animation"
+                                                stroke-width="2"
+                                                stroke="#fff"
+                                                cx="26.5"
+                                                cy="26.5"
+                                                r="25.5"
+                                                fill="none"
+                                            />
                                         </svg>
-                                        <script>
-                                            ( () => {
-
-                                                let $video = document.querySelector('kelp-media-playback.custom video');
-                                                let $circle = document.getElementById('circle');
-                                                let timeCaption = document.querySelector( '.progress-countdown h2' );
-
-                                                let circle_animation = document.querySelector( '.circle_animation' ).style;
-
-                                                let seconds = false;
-                                                let time = false;
-                                                let remaining = false;
-
-                                                let radius = getRadius( $circle );
-                                                let circumference = Math.ceil(2 * Math.PI * radius);
-                                                let finalOffset = false;
-                                                let steps = 0;
-
-                                                let progres$;
-
-                                                circle_animation.strokeDashoffset = steps ?? 0;
-                                                circle_animation?.setProperty('--circumference', circumference);
-                                                circle_animation?.setProperty('--countdown-time', '0.2s');
-
-                                                function getRadius (el) {
-                                                    const $circle = el;
-                                                    const width = $circle.getBoundingClientRect().width;
-                                                    const height = $circle.getBoundingClientRect().height;
-                                                    return Math.min(width, height) / 2;
-                                                }
-
-                                                function getProgress (el) {
-                                                    let duration = el.duration;  // seconds
-                                                    let currentTime = el.currentTime;  // seconds
-                                                    let percent = duration && isFinite(duration) ? (currentTime / duration) * 100 : 0;
-                                                    return { currentTime, duration, percent };
-                                                }
-
-                                                function updateProgress ()  {
-                                                    let { currentTime, duration, percent } = getProgress($video);
-
-                                                    finalOffset = circumference; // i.e. 440, The length of strokedasharray ( pixel circumference of the circle -> css )
-                                                    steps = finalOffset/duration;
-
-                                                    currentTime = Math.floor(currentTime);
-                                                    duration = Math.floor(duration);
-
-                                                    remaining = Math.max(duration - currentTime, 0); // countdown
-
-                                                    return {
-                                                         /* Update text countdown */
-                                                        timeCaption() {
-                                                            timeCaption.innerText = formatTime(remaining);
-                                                        },
-                                                        timeOffset() {
-                                                            circle_animation.strokeDashoffset = Math.ceil(finalOffset * (currentTime / duration));
-
-                                                            /*
-                                                                KLUDGE: Near the finish line speed up the animation so it completes on time,
-                                                                instead of lagging behind.
-                                                            */
-                                                            if ( ( finalOffset - 10 ) < parseInt(circle_animation.strokeDashoffset) ) {
-                                                                circle_animation.setProperty('--countdown-time', '0.4s');
-                                                            } else if ( circle_animation.getPropertyValue('--countdown-time').trim() !== '' ) {
-                                                                //circle_animation.removeProperty('--countdown-time');
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                function formatTime(seconds) {
-                                                    const m = Math.floor(seconds / 60);
-                                                    const s = seconds % 60;
-                                                    return `${m}:${s.toString().padStart(2, '0')}`;
-                                                }
-
-                                                /*
-                                                    Metadata
-                                                */
-                                                $video?.addEventListener('loadedmetadata', (ev) => {
-                                                    updateProgress().timeCaption();
-                                                    // updateProgress(ev).timeOffset();
-                                                });
-
-                                                $video.addEventListener('timeupdate', (ev) => {
-                                                    let updatedTimeStamp = updateProgress().timeCaption();
-                                                    //updateProgress(ev).timeOffset();
-                                                    // update your UI here
-                                                });
-
-                                                let ctrl = false;
-
-
-                                                $video.addEventListener("seeking", (event) => {
-                                                    cancelAnimationFrame(progres$);
-                                                    requestAnimationFrame(animateProgress);
-                                                });
-
-                                                $video.addEventListener("seeked", (event) => {
-                                                    // cancelAnimationFrame(progres$);
-                                                    // requestAnimationFrame(animateProgress);
-                                                });
-
-                                                function animateProgress() {
-                                                    const { currentTime, duration } = $video;
-
-                                                    updateProgress().timeOffset();
-
-                                                    if (!$video.paused && !$video.ended) progres$ = requestAnimationFrame(animateProgress);
-                                                }
-
-                                                $video.addEventListener('play', (ev) => {
-                                                    cancelAnimationFrame(progres$);
-                                                    progres$ = requestAnimationFrame(animateProgress);
-                                                });
-
-                                                $video.addEventListener('pause', (ev) => cancelAnimationFrame(progres$));
-                                                $video.addEventListener('ended', (ev) => cancelAnimationFrame(progres$));
-
-                                            })();
-                                        </script>
                                     </div>
                                 </div>
 

@@ -74,14 +74,10 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         */
         //this.reveal();
 
-        /* TODO: Loading state:
-            - no play or pause icon, instead a loading icon
-        */
-        // this.whileLoading()
 
-        // Delays the addition of hte "media-is-ready" attribute. Moving this down the line will have no effect bc mediaIsReady()
-        // has already been called.
-        console.log(this.querySelector('button'));
+        // Delays the addition of hte "media-is-ready" attribute.
+        // Moving this down the line will have no effect
+        // bc mediaIsReady() has already been called.
         if ( this.querySelector('button') ) {
             await this.loadingDelay();
         } else {
@@ -248,6 +244,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             //return false;
         }
 
+
         return true;
     }
 
@@ -306,6 +303,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
             return false;
 
         }
+
+        /* Progress Countdown */
+        this.progressCountdown();
 
         return true;
 
@@ -472,6 +472,8 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             this.playbackButton.classList.add('replay');
 
+
+
             console.log('ended');
         });
 
@@ -596,6 +598,159 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             if (displayDelay) this.playbackButton?.style?.setProperty( '--js-button-display-delay', `${hasTimeUnit(displayDelay) ? displayDelay : `${displayDelay}ms`}`);
         }
+    }
+
+    /*
+        Progress Countdown
+    */
+
+    progressCountdown () {
+
+        let setCircleSVG = () => {
+            let sizeProp = getComputedStyle(this).getPropertyValue('--button-size');
+
+            let svg = `
+                <svg width="55.25" height="55.25" viewBox="0 0 55.25 55.25">
+                    <circle id="circle" class="circle_animation" r="23.625" cy="27.625" cx="27.625" stroke-width="8" stroke="#6fdb6f" fill="none"/>
+                </svg>
+            `;
+
+            let {log} = console;
+            log('sizeProp: ' + sizeProp);
+        }
+
+        setCircleSVG();
+
+            let $video = document.querySelector('kelp-media-playback.custom video');
+            let $circle = document.getElementById('circle');
+            let timeCaption = document.querySelector( '.progress-countdown p.progress-countdown-timecaption' );
+
+            let circle_animation = document.querySelector( '.circle_animation' ).style;
+
+            let seconds = false;
+            let time = false;
+            let remaining = false;
+
+            let radius = getRadius( $circle );
+            let circumference = Math.ceil(2 * Math.PI * radius);
+            let finalOffset = false;
+            let steps = 0;
+
+            let progres$;
+
+            circle_animation.strokeDashoffset = steps ?? 0;
+            circle_animation?.setProperty('--circumference', circumference);
+            //circle_animation?.setProperty('--countdown-time', '0.2s');
+
+            function getRadius (el) {
+                const $circle = el;
+                const width = $circle.getBoundingClientRect().width;
+                const height = $circle.getBoundingClientRect().height;
+                return Math.min(width, height) / 2;
+            }
+
+            function getProgress (el) {
+                let duration = el.duration;  // seconds
+                let currentTime = el.currentTime;  // seconds
+                let percent = duration && isFinite(duration) ? (currentTime / duration) * 100 : 0;
+                return { currentTime, duration, percent };
+            }
+
+            function updateProgress ()  {
+                let { currentTime, duration, percent } = getProgress($video);
+
+                finalOffset = circumference; // i.e. 440, The length of strokedasharray ( pixel circumference of the circle -> css )
+                steps = finalOffset/duration;
+
+                currentTime = Math.floor(currentTime);
+                duration = Math.floor(duration);
+
+                remaining = Math.max(duration - currentTime, 0); // countdown
+
+                return {
+                        /* Update text countdown */
+                    timeCaption() {
+                        if (remaining && timeCaption !== null) {
+                            timeCaption.removeAttribute('aria-hidden');
+                            if (timeCaption instanceof HTMLElement) {
+                                timeCaption.innerText = formatTime(remaining);
+                            } else if (timeCaption) {
+                                timeCaption.textContent = formatTime(remaining);
+                            }
+                            return remaining;
+                        }
+                    },
+                    timeOffset() {
+                        circle_animation.strokeDashoffset = Math.ceil(finalOffset * (currentTime / duration));
+
+                        /*
+                            KLUDGE: Near the finish line speed up the animation so it completes on time,
+                            instead of lagging behind.
+                        */
+                        if ( ( finalOffset - 10 ) < parseInt(circle_animation.strokeDashoffset) ) {
+                            circle_animation.setProperty('--countdown-time', '0.4s');
+                        } else if ( circle_animation.getPropertyValue('--countdown-time').trim() !== '' ) {
+                            // circle_animation.removeProperty('--countdown-time');
+                        }
+                    }
+                }
+            }
+
+            function formatTime(seconds) {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            }
+
+            function animateProgress() {
+                const { currentTime, duration } = $video;
+
+                updateProgress().timeOffset();
+
+                if (!$video.paused && !$video.ended) progres$ = requestAnimationFrame(animateProgress);
+            }
+
+            /* mediaIsReady has already been called so we know the media is ready */
+            updateProgress().timeCaption();
+
+            /*
+                Events
+            */
+
+            $video?.addEventListener('loadedmetadata', (ev) => {
+                // updateProgress().timeCaption();
+                // updateProgress(ev).timeOffset();
+            });
+
+            $video?.addEventListener('loadedmetadata', (ev) => {
+                // updateProgress().timeCaption();
+                // updateProgress(ev).timeOffset();
+            });
+
+            $video?.addEventListener('timeupdate', (ev) => {
+                let updatedTimeStamp = updateProgress().timeCaption();
+                //updateProgress(ev).timeOffset();
+                // update your UI here
+            });
+
+            $video.addEventListener("seeking", (event) => {
+                cancelAnimationFrame(progres$);
+                requestAnimationFrame(animateProgress);
+            });
+
+            $video.addEventListener("seeked", (event) => {
+                // cancelAnimationFrame(progres$);
+                // requestAnimationFrame(animateProgress);
+            });
+
+            $video.addEventListener('play', (ev) => {
+                cancelAnimationFrame(progres$);
+                progres$ = requestAnimationFrame(animateProgress);
+            });
+
+            $video.addEventListener('pause', (ev) => cancelAnimationFrame(progres$));
+            $video.addEventListener('ended', (ev) => cancelAnimationFrame(progres$));
+
     }
 
 } );

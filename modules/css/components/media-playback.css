@@ -1,5 +1,5 @@
 /**
- * @section <kelp-tabs>
+ * @section <kelp-media-playback>
  */
 
 @layer kelp.core {
@@ -17,12 +17,12 @@
         --icon-display-timing: 0.2s;
         --icon-display-delay: 0s;
 
+        --button-size: calc(42/16*1rem);
         --button-color: white;
         --button-bg: #00000090;
         --button-border: 2px solid #FFFFFF70;
         --button-hover-border: white;
         --button-focus-shadow: #4285F4;
-        --button-size: calc(42/16*1rem);
         --button-filter: blur(4px);
 
         /* Reveal */
@@ -361,4 +361,78 @@
         to { transform: rotate(360deg) }
     }
 
+}
+
+/*  */
+@layer kelp.core {
+
+    kelp-media-playback {
+
+        --countdown-size: 42px;
+        --countdown-stroke-width: 8px;
+
+        & .progress-countdown {
+            position: absolute;
+            bottom: 0;
+            padding: 0 !important;
+            margin: 0;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            z-index: 0;
+
+            /*  */
+            top: 32.8px;
+            right: 10.3px;
+            bottom: auto;
+            transform: translateY(-50%);
+
+            & [role="status"] {
+                width: var(--countdown-size);
+
+                position: absolute;
+
+                display: flex;
+                flex-flow: column nowrap;
+                align-items: center;
+                justify-content: center;
+
+                padding-left: 0 !important;
+                margin: 0;
+
+
+
+                & p {
+                    padding: 0;
+                    margin: 0;
+                }
+
+                & p:not([aria-hidden]) ~ p:last-child {
+                    display: none;
+                }
+
+                & :is(.progress-countdown-timecaption,p) {
+                    position: absolute;
+                    opacity: 0;
+                    width: 1px;
+                    height: 1px;
+                    font-size: 0;
+                    overflow: hidden;
+                }
+            }
+
+            & svg {
+                transform: rotate(-90deg);
+            }
+
+            & .circle_animation {
+                stroke-dasharray: var(--circumference); /* this value is the pixel circumference of the circle */
+                stroke-dashoffset: 0;
+                transition: all var(--countdown-time, 1s) linear;
+            }
+        }
+
+    }
 }
