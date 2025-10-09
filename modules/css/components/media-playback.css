@@ -40,6 +40,8 @@
         }
 
         & button {
+            anchor-name: --playback-anchor;
+
             width: var(--button-size);
             height: var(--button-size);
             border: var(--button-border);
@@ -372,8 +374,9 @@
         --countdown-stroke-width: 8px;
 
         & .progress-countdown {
-            position: absolute;
-            bottom: 0;
+            /* position: absolute; */
+            /* bottom: 0; */
+
             padding: 0 !important;
             margin: 0;
 
@@ -381,17 +384,31 @@
             justify-content: center;
             align-items: center;
 
-            z-index: 0;
+            z-index: 3;
+            pointer-events: none;
 
-            /*  */
             top: 32.8px;
             right: 10.3px;
             bottom: auto;
             transform: translateY(-50%);
 
-            & [role="status"] {
-                width: var(--countdown-size);
+            @supports (position-anchor: --playback-anchor) {
+                position-anchor: --playback-anchor;
+                position: fixed;
+                left: calc(anchor(left) - 3px);
+                top: anchor(top);
+                bottom: auto;
+                transform: none;
+            }
 
+            & svg {
+
+                & circle {
+                    --cx-cy: 2px solid red;
+                }
+            }
+
+            & [role="status"] {
                 position: absolute;
 
                 display: flex;
@@ -401,8 +418,6 @@
 
                 padding-left: 0 !important;
                 margin: 0;
-
-
 
                 & p {
                     padding: 0;
@@ -425,6 +440,10 @@
 
             & svg {
                 transform: rotate(-90deg);
+
+                & circle {
+
+                }
             }
 
             & .circle_animation {

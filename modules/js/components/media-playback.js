@@ -472,8 +472,6 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             this.playbackButton.classList.add('replay');
 
-
-
             console.log('ended');
         });
 
@@ -668,15 +666,21 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
                 remaining = Math.max(duration - currentTime, 0); // countdown
 
                 return {
-                        /* Update text countdown */
+                    zeroOutTime() {
+                        if (timeCaption !== null) {
+                            timeCaption.textContent = formatTime(0);
+                        }
+                    },
+                    /* Update text countdown */
                     timeCaption() {
                         if (remaining && timeCaption !== null) {
-                            timeCaption.removeAttribute('aria-hidden');
-                            if (timeCaption instanceof HTMLElement) {
-                                timeCaption.innerText = formatTime(remaining);
-                            } else if (timeCaption) {
-                                timeCaption.textContent = formatTime(remaining);
+
+                            if (timeCaption.hasAttribute('aria-hidden')) {
+                                timeCaption.removeAttribute('aria-hidden');
                             }
+
+                            timeCaption.textContent = formatTime(remaining);
+
                             return remaining;
                         }
                     },
@@ -688,9 +692,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
                             instead of lagging behind.
                         */
                         if ( ( finalOffset - 10 ) < parseInt(circle_animation.strokeDashoffset) ) {
-                            circle_animation.setProperty('--countdown-time', '0.4s');
+                            circle_animation.setProperty('--countdown-time', '0.9s');
                         } else if ( circle_animation.getPropertyValue('--countdown-time').trim() !== '' ) {
-                            // circle_animation.removeProperty('--countdown-time');
+                            circle_animation.removeProperty('--countdown-time');
                         }
                     }
                 }
@@ -706,6 +710,10 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
                 const { currentTime, duration } = $video;
 
                 updateProgress().timeOffset();
+
+                if (!$video.paused && (duration - currentTime <= 0.58)) {
+                    updateProgress().zeroOutTime();
+                }
 
                 if (!$video.paused && !$video.ended) progres$ = requestAnimationFrame(animateProgress);
             }
@@ -745,11 +753,21 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
             $video.addEventListener('play', (ev) => {
                 cancelAnimationFrame(progres$);
-                progres$ = requestAnimationFrame(animateProgress);
+                requestAnimationFrame(animateProgress);
             });
 
             $video.addEventListener('pause', (ev) => cancelAnimationFrame(progres$));
-            $video.addEventListener('ended', (ev) => cancelAnimationFrame(progres$));
+            $video.addEventListener('ended', (ev) => {
+                console.log('donner');
+                updateProgress().zeroOutTime();
+                cancelAnimationFrame(progres$);
+            });
+
+            /* Detect if video is already playing, likely due autoplay being set on the <video> */
+            if (this.mediaStatus.isPlaying) {
+                cancelAnimationFrame(progres$);
+                requestAnimationFrame(animateProgress);
+            }
 
     }
 

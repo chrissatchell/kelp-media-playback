@@ -31,7 +31,7 @@
 
                         <div style="position: relative;">
 
-                            <kelp-media-playback class="custom" loading-delay reveal>
+                            <kelp-media-playback class="custom" loading-delay="3000" reveal="500 250">
 
                                 <style>
                                     [media-has-controls] .custom-playback-group {
@@ -99,12 +99,49 @@
 
                                     .custom-playback-group button.is-paused  {
                                         --button-bg: rgba(244,244,244, 0.25);
-                                        --button-color: #000;
-                                        --button-hover-border: limegreen;
+                                        /* --button-color: #f7ffd4; */
+                                        /* --button-hover-border: limegreen; */
 
-                                        & .play__entity-icon {
-                                            transform: translateX( 0.05rem );
+                                        &.replay {
+                                            --button-bg: #ffffff80;
+                                            border-bottom:1px solid #ffffff95;
+                                            /* border-right:1px solid #ffffff95; */
                                         }
+
+                                        &.replay:hover {
+                                            --button-bg:rgba(255, 255, 255, 0.693);
+                                            --button-hover-border:transparent;
+                                        }
+                                    }
+
+                                    .play__entity-icon {
+                                        transform: translate( 0.05rem, -0.025rem );
+                                    }
+
+                                    .pause__entity-icon {
+                                        transform: translateY( -0.05rem );
+                                    }
+                                    .progress-countdown {
+                                        transition: 0.15s transform ease-out;
+                                    }
+                                    .custom-playback:hover + .progress-countdown {
+                                        transform: scale(1.5);
+
+                                        circle {
+                                            box-shadow: 0 0 0 5px white;
+                                        }
+
+                                        & [role="status"] .progress-countdown-timecaption {
+                                            opacity: 1;
+                                            height: auto;
+                                            width: 100px;
+                                            font-size: 12px;
+                                            /* padding-right: 2rem; */
+                                            transform:translateX(-50%);
+                                        }
+                                    }
+                                    .replay {
+                                        color:#333;
                                     }
                                 </style>
 
@@ -114,19 +151,15 @@
                                     height="810"
                                     loading="lazy"
                                     src="./mediaplayback-demo-assets/Apple-Restore-Fund-hero.mp4"
-                                    preload="auto" muted playsinline  controls>
+                                    preload="auto" muted playsinline autoplay>
                                 </video>
 
-                                <!-- <button>
-                                    <span class="play">
-                                        &#9654;
-                                    </span>
-                                </button> -->
-
                                 <div class="custom-playback-group">
+
                                     <div>
                                         <p>Redwoods</p>
                                     </div>
+
                                     <button class="custom-playback" data-foobar="1" onclick="this.dataset.foobar = parseInt(this.dataset.foobar) + 1">
 
                                         <span class="loading">
@@ -159,19 +192,20 @@
                                             <p>loading</p>
                                         </div>
 
-                                        <svg width="53" height="53" viewBox="0 0 53 53">
+                                        <svg width="47" height="47" viewBox="0 0 47 47">
                                             <circle
                                                 id="circle"
                                                 class="circle_animation"
                                                 stroke-width="2"
                                                 stroke="#fff"
-                                                cx="26.5"
-                                                cy="26.5"
-                                                r="25.5"
+                                                cx="23.5"
+                                                cy="23.5"
+                                                r="22.5"
                                                 fill="none"
                                             />
                                         </svg>
                                     </div>
+
                                 </div>
 
                             </kelp-media-playback>
