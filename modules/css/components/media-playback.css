@@ -369,9 +369,12 @@
 @layer kelp.core {
 
     kelp-media-playback {
-
         --countdown-size: 42px;
         --countdown-stroke-width: 8px;
+
+        &:not([progress]) .progress-countdown {
+            display: none;
+        }
 
         & .progress-countdown {
             /* position: absolute; */

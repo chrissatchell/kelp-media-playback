@@ -210,8 +210,9 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         }
         else {
 
+            console.warn( this, 'No target media found. Add a \'target\' attribute with a string value to the kelp-media-playback element; Use the same value from the target attribute as the value of the id attribute for the video or audio element.' );
+
             if ( typeof debug === 'function' ) {
-                console.warn( this, 'No target media found. Add a \'target\' attribute with a string value to the kelp-media-playback element; Use the same value from the target attribute as the value of the id attribute for the video or audio element.' );
                 debug( this, `
                     Target attribute is not a valid HTMLMediaElement.
                     Check the target attribute is set and ensure it can be used to target a HTMLMediaElement using its ID or a selector.
@@ -305,7 +306,7 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
         }
 
         /* Progress Countdown */
-        this.progressCountdown();
+        if ( this.hasAttribute('progress') ) this.progressCountdown();
 
         return true;
 
@@ -619,155 +620,155 @@ customElements.define( 'kelp-media-playback', class extends HTMLElement {
 
         setCircleSVG();
 
-            let $video = document.querySelector('kelp-media-playback.custom video');
-            let $circle = document.getElementById('circle');
-            let timeCaption = document.querySelector( '.progress-countdown p.progress-countdown-timecaption' );
+        let $video = document.querySelector('kelp-media-playback.custom video');
+        let $circle = document.getElementById('circle');
+        let timeCaption = document.querySelector( '.progress-countdown p.progress-countdown-timecaption' );
 
-            let circle_animation = document.querySelector( '.circle_animation' ).style;
+        let circle_animation = document.querySelector( '.circle_animation' ).style;
 
-            let seconds = false;
-            let time = false;
-            let remaining = false;
+        let seconds = false;
+        let time = false;
+        let remaining = false;
 
-            let radius = getRadius( $circle );
-            let circumference = Math.ceil(2 * Math.PI * radius);
-            let finalOffset = false;
-            let steps = 0;
+        let radius = getRadius( $circle );
+        let circumference = Math.ceil(2 * Math.PI * radius);
+        let finalOffset = false;
+        let steps = 0;
 
-            let progres$;
+        let progres$;
 
-            circle_animation.strokeDashoffset = steps ?? 0;
-            circle_animation?.setProperty('--circumference', circumference);
-            //circle_animation?.setProperty('--countdown-time', '0.2s');
+        circle_animation.strokeDashoffset = steps ?? 0;
+        circle_animation?.setProperty('--circumference', circumference);
+        //circle_animation?.setProperty('--countdown-time', '0.2s');
 
-            function getRadius (el) {
-                const $circle = el;
-                const width = $circle.getBoundingClientRect().width;
-                const height = $circle.getBoundingClientRect().height;
-                return Math.min(width, height) / 2;
-            }
+        function getRadius (el) {
+            const $circle = el;
+            const width = $circle.getBoundingClientRect().width;
+            const height = $circle.getBoundingClientRect().height;
+            return Math.min(width, height) / 2;
+        }
 
-            function getProgress (el) {
-                let duration = el.duration;  // seconds
-                let currentTime = el.currentTime;  // seconds
-                let percent = duration && isFinite(duration) ? (currentTime / duration) * 100 : 0;
-                return { currentTime, duration, percent };
-            }
+        function getProgress (el) {
+            let duration = el.duration;  // seconds
+            let currentTime = el.currentTime;  // seconds
+            let percent = duration && isFinite(duration) ? (currentTime / duration) * 100 : 0;
+            return { currentTime, duration, percent };
+        }
 
-            function updateProgress ()  {
-                let { currentTime, duration, percent } = getProgress($video);
+        function updateProgress ()  {
+            let { currentTime, duration, percent } = getProgress($video);
 
-                finalOffset = circumference; // i.e. 440, The length of strokedasharray ( pixel circumference of the circle -> css )
-                steps = finalOffset/duration;
+            finalOffset = circumference; // i.e. 440, The length of strokedasharray ( pixel circumference of the circle -> css )
+            steps = finalOffset/duration;
 
-                currentTime = Math.floor(currentTime);
-                duration = Math.floor(duration);
+            currentTime = Math.floor(currentTime);
+            duration = Math.floor(duration);
 
-                remaining = Math.max(duration - currentTime, 0); // countdown
+            remaining = Math.max(duration - currentTime, 0); // countdown
 
-                return {
-                    zeroOutTime() {
-                        if (timeCaption !== null) {
-                            timeCaption.textContent = formatTime(0);
+            return {
+                zeroOutTime() {
+                    if (timeCaption !== null) {
+                        timeCaption.textContent = formatTime(0);
+                    }
+                },
+                /* Update text countdown */
+                timeCaption() {
+                    if (remaining && timeCaption !== null) {
+
+                        if (timeCaption.hasAttribute('aria-hidden')) {
+                            timeCaption.removeAttribute('aria-hidden');
                         }
-                    },
-                    /* Update text countdown */
-                    timeCaption() {
-                        if (remaining && timeCaption !== null) {
 
-                            if (timeCaption.hasAttribute('aria-hidden')) {
-                                timeCaption.removeAttribute('aria-hidden');
-                            }
+                        timeCaption.textContent = formatTime(remaining);
 
-                            timeCaption.textContent = formatTime(remaining);
+                        return remaining;
+                    }
+                },
+                timeOffset() {
+                    circle_animation.strokeDashoffset = Math.ceil(finalOffset * (currentTime / duration));
 
-                            return remaining;
-                        }
-                    },
-                    timeOffset() {
-                        circle_animation.strokeDashoffset = Math.ceil(finalOffset * (currentTime / duration));
-
-                        /*
-                            KLUDGE: Near the finish line speed up the animation so it completes on time,
-                            instead of lagging behind.
-                        */
-                        if ( ( finalOffset - 10 ) < parseInt(circle_animation.strokeDashoffset) ) {
-                            circle_animation.setProperty('--countdown-time', '0.9s');
-                        } else if ( circle_animation.getPropertyValue('--countdown-time').trim() !== '' ) {
-                            circle_animation.removeProperty('--countdown-time');
-                        }
+                    /*
+                        KLUDGE: Near the finish line speed up the animation so it completes on time,
+                        instead of lagging behind.
+                    */
+                    if ( ( finalOffset - 10 ) < parseInt(circle_animation.strokeDashoffset) ) {
+                        // circle_animation.setProperty('--countdown-time', '0.4s');
+                    } else if ( circle_animation.getPropertyValue('--countdown-time').trim() !== '' ) {
+                        circle_animation.removeProperty('--countdown-time');
                     }
                 }
             }
+        }
 
-            function formatTime(seconds) {
-                const m = Math.floor(seconds / 60);
-                const s = seconds % 60;
-                return `${m}:${s.toString().padStart(2, '0')}`;
-            }
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
 
-            function animateProgress() {
-                const { currentTime, duration } = $video;
+        function animateProgress() {
+            const { currentTime, duration } = $video;
 
-                updateProgress().timeOffset();
+            updateProgress().timeOffset();
 
-                if (!$video.paused && (duration - currentTime <= 0.58)) {
-                    updateProgress().zeroOutTime();
-                }
-
-                if (!$video.paused && !$video.ended) progres$ = requestAnimationFrame(animateProgress);
-            }
-
-            /* mediaIsReady has already been called so we know the media is ready */
-            updateProgress().timeCaption();
-
-            /*
-                Events
-            */
-
-            $video?.addEventListener('loadedmetadata', (ev) => {
-                // updateProgress().timeCaption();
-                // updateProgress(ev).timeOffset();
-            });
-
-            $video?.addEventListener('loadedmetadata', (ev) => {
-                // updateProgress().timeCaption();
-                // updateProgress(ev).timeOffset();
-            });
-
-            $video?.addEventListener('timeupdate', (ev) => {
-                let updatedTimeStamp = updateProgress().timeCaption();
-                //updateProgress(ev).timeOffset();
-                // update your UI here
-            });
-
-            $video.addEventListener("seeking", (event) => {
-                cancelAnimationFrame(progres$);
-                requestAnimationFrame(animateProgress);
-            });
-
-            $video.addEventListener("seeked", (event) => {
-                // cancelAnimationFrame(progres$);
-                // requestAnimationFrame(animateProgress);
-            });
-
-            $video.addEventListener('play', (ev) => {
-                cancelAnimationFrame(progres$);
-                requestAnimationFrame(animateProgress);
-            });
-
-            $video.addEventListener('pause', (ev) => cancelAnimationFrame(progres$));
-            $video.addEventListener('ended', (ev) => {
-                console.log('donner');
+            if (!$video.paused && (duration - currentTime <= 0.58)) {
                 updateProgress().zeroOutTime();
-                cancelAnimationFrame(progres$);
-            });
-
-            /* Detect if video is already playing, likely due autoplay being set on the <video> */
-            if (this.mediaStatus.isPlaying) {
-                cancelAnimationFrame(progres$);
-                requestAnimationFrame(animateProgress);
             }
+
+            if (!$video.paused && !$video.ended) progres$ = requestAnimationFrame(animateProgress);
+        }
+
+        /* mediaIsReady has already been called so we know the media is ready */
+        updateProgress().timeCaption();
+
+        /*
+            Events
+        */
+
+        $video?.addEventListener('loadedmetadata', (ev) => {
+            // updateProgress().timeCaption();
+            // updateProgress(ev).timeOffset();
+        });
+
+        $video?.addEventListener('loadedmetadata', (ev) => {
+            // updateProgress().timeCaption();
+            // updateProgress(ev).timeOffset();
+        });
+
+        $video?.addEventListener('timeupdate', (ev) => {
+            let updatedTimeStamp = updateProgress().timeCaption();
+            //updateProgress(ev).timeOffset();
+            // update your UI here
+        });
+
+        $video.addEventListener("seeking", (event) => {
+            cancelAnimationFrame(progres$);
+            requestAnimationFrame(animateProgress);
+        });
+
+        $video.addEventListener("seeked", (event) => {
+            // cancelAnimationFrame(progres$);
+            // requestAnimationFrame(animateProgress);
+        });
+
+        $video.addEventListener('play', (ev) => {
+            cancelAnimationFrame(progres$);
+            requestAnimationFrame(animateProgress);
+        });
+
+        $video.addEventListener('pause', (ev) => cancelAnimationFrame(progres$));
+        $video.addEventListener('ended', (ev) => {
+            console.log('donner');
+            updateProgress().zeroOutTime();
+            cancelAnimationFrame(progres$);
+        });
+
+        /* Detect if video is already playing, likely due autoplay being set on the <video> */
+        if (this.mediaStatus.isPlaying) {
+            cancelAnimationFrame(progres$);
+            requestAnimationFrame(animateProgress);
+        }
 
     }
 
