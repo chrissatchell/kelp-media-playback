@@ -3,35 +3,37 @@ import { emit } from "../utilities/emit.js";
 import { ready } from "../utilities/ready.js";
 import { reinit } from "../utilities/reinit.js";
 
-customElements.define(
-    "kelp-media-playback",
-    class extends HTMLElement {
+customElements.define( "kelp-media-playback", class extends HTMLElement {
+
         /**
-         * Class Fields
-         *
-         * targetAttr      {String}             The target attribute is a string used to select the target HTMLMediaElement by ID.
-         * playbackButton  {HTMLButtonElement}  User provided or generated <button> element for the play/pause ("Playback") button.
-         * targetMedia     {HTMLMediaElement}   The audio or video HTMLMediaElement that needs to be controlled.
-         * mediaStatus     {Object}             Object to track if media is ready and if it is currently playing.
-         * hasUserProvidedButton {Boolean}      Flag to track if a user provided button element was used.
+         * 0. Class Fields
          */
 
+        /* targetAttr {String} The target attribute is a string used to select the target HTMLMediaElement by ID. */
         targetAttr = false;
 
+        /* playbackButton {HTMLButtonElement} User provided or generated <button> element for the play/pause ("Playback") button. */
         playbackButton = false;
 
+        /* targetMedia {HTMLMediaElement} The audio or video HTMLMediaElement that needs to be controlled.*/
+        // NOTE: Update to an empty value instead of false?
         targetMedia = false;
 
+        /* mediaStatus {Object} Object to track if media is ready and if it is currently playing. */
         mediaStatus = {
             isReady: false,
             isPlaying: false,
         };
 
-        #loadingDelayDefaultTime = 750;
-
+        /* hasUserProvidedButton {Boolean}      Flag to track if a user provided button element was used. */
         #hasUserProvidedButton = false;
 
+        /* loadingDelayDefaultTime {Number} The default time (in milliseconds) to delay the addition of the "media-is-ready" attribute. */
+        #loadingDelayDefaultTime = 750;
+
+        /* hasChildMedia {Boolean} Flag to track if a child media element was used. */
         #hasChildMedia = false;
+
 
         /**
          *  1. When connected to the DOM, run the init() method when ready.
@@ -44,6 +46,7 @@ customElements.define(
                 this.init();
             }
         }
+
 
         /**
          *  2. When initialized, do a great many things.
@@ -75,16 +78,16 @@ customElements.define(
             // Delays the addition of the "media-is-ready" attribute.
             // Moving this down the line will have no effect
             // bc mediaIsReady() has already been called.
-            if (this.querySelector("button")) {
+            if ( this.querySelector( 'button' ) ) {
                 await this.loadingDelay();
             } else {
                 console.log("No loadingDelay applied because no button is present");
             }
 
-            // Media Ready State: Check if Media is ready to play...
+            // Check if Media is ready to play...
             await this.mediaIsReady();
 
-            // ... then if the Media is ready then update the mediaStatus.isReady flag.
+            // ...then if ready then update the mediaStatus.isReady flag and attr.
             this.mediaStatus.isReady = true;
             this.setAttribute("media-is-ready", "");
 
@@ -117,6 +120,7 @@ customElements.define(
             this.setAttribute("is-ready", "");
         }
 
+
         /**
          *  3. Setup the component's settings
          *      i. Check if the user provided a button element.
@@ -127,11 +131,11 @@ customElements.define(
 
         setup() {
             /*
-            i. BUTTON ELEMENT PROVIDED CHECK
+                i. BUTTON ELEMENT PROVIDED CHECK
 
-                Because this is a HTML Web Component the user is expected to provide a child <button> element
-                for the play/pause ("Playback") button. If no button element is provided, we will need to create one later.
-        */
+                   Because this is a HTML Web Component the user is expected to provide a child <button> element
+                   for the play/pause ("Playback") button. If no button element is provided, we will need to create one later.
+            */
             if (this.querySelector("button") !== null) {
                 this.#hasUserProvidedButton = true;
 
@@ -146,8 +150,8 @@ customElements.define(
             }
 
             /*
-            ii. Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
-        */
+                ii. Check for the target attribute on <media-playback>, '<media-playback target="<selector>">'.
+            */
             this.targetAttr = this.getAttribute("target") ?? false;
 
             // let selectorType = ( this.targetAttr && this.targetAttr.startsWith('#') ) ? 'id' : 'other';
@@ -164,7 +168,10 @@ customElements.define(
 
                 this.#hasChildMedia = this.targetMedia !== null ? true : false;
 
-                if (this.targetMedia !== null && !this.targetMedia.getAttribute("id")) {
+                if (
+                    this.targetMedia !== null &&
+                    !this.targetMedia.id
+                ) {
                     let id = Math.floor(Math.random() * 100000);
 
                     // Make sure it's not already in use
@@ -172,11 +179,16 @@ customElements.define(
                     let existing = document.querySelector(`#kelp_${id}`);
                     while (existing) {
                         suffix++;
-                        existing = document.querySelector(`#kelp_${id}_${suffix}`);
+                        existing = document.querySelector(
+                            `#kelp_${id}_${suffix}`,
+                        );
                     }
 
                     // Set the ID on the element
-                    this.targetMedia.setAttribute("id", `kelp_${id}${suffix ? `_${suffix}` : ""}`);
+                    this.targetMedia.setAttribute(
+                        "id",
+                        `kelp_${id}${suffix ? `_${suffix}` : ""}`,
+                    );
                 }
             }
 
@@ -184,13 +196,14 @@ customElements.define(
             else if (
                 this.targetAttr !== false &&
                 document.getElementById(this.targetAttr) !== null &&
-                document.getElementById(this.targetAttr) instanceof HTMLMediaElement
+                document.getElementById(this.targetAttr) instanceof
+                    HTMLMediaElement
             ) {
                 this.targetMedia = document.getElementById(this.targetAttr);
             } else {
                 console.warn(
                     this,
-                    "No target media found. Add a 'target' attribute with a string value to the kelp-media-playback element; Use the same value from the target attribute as the value of the id attribute for the video or audio element."
+                    "No target media found. Add a 'target' attribute with a string value to the kelp-media-playback element; Use the same value from the target attribute as the value of the id attribute for the video or audio element.",
                 );
 
                 if (typeof debug === "function") {
@@ -200,7 +213,7 @@ customElements.define(
                     Target attribute is not a valid HTMLMediaElement.
                     Check the target attribute is set and ensure it can be used to target a HTMLMediaElement using its ID or a selector.
                     Alternatively, add the media element - video or audio - as a child of the web componet.
-                `
+                `,
                     );
                 }
 
@@ -241,8 +254,8 @@ customElements.define(
 
         render() {
             /*
-            ii. Use the provided child button element
-        */
+                ii. Use the provided child button element
+            */
             if (this.#hasUserProvidedButton) {
                 // playbackButton exits so add the reveal styles if needed
                 // this.reveal();
@@ -292,7 +305,7 @@ customElements.define(
                             (ev) => {
                                 resolve(media);
                             },
-                            { once: true }
+                            { once: true },
                         );
                     }
                 });
@@ -302,8 +315,8 @@ customElements.define(
         mediaIsPlaying(media = this.targetMedia, countdown = 50) {
             return new Promise((resolve, reject) => {
                 /*
-                If media is playing then resolve and exit.
-            */
+                    If media is playing then resolve and exit.
+                */
 
                 if (!media.paused && !media.ended && media.readyState > 2) {
                     resolve(media);
@@ -311,8 +324,8 @@ customElements.define(
                 }
 
                 /*
-                If media is not already playing then setup listeners.
-            */
+                    If media is not already playing then setup listeners.
+                */
 
                 // Resolve
                 media.addEventListener("playing", onPlaying, { once: true });
@@ -324,8 +337,8 @@ customElements.define(
                 media.addEventListener("abort", onAbort, { once: true });
 
                 /*
-                Handlers
-            */
+                    Handlers
+                */
 
                 function onPlaying() {
                     cleanup();
@@ -352,7 +365,11 @@ customElements.define(
                 // Timeout - do not wait forever if playback never starts.
                 const timer = setTimeout(() => {
                     cleanup();
-                    reject(new Error(`Playback did not start within ${countdown}ms`));
+                    reject(
+                        new Error(
+                            `Playback did not start within ${countdown}ms`,
+                        ),
+                    );
                 }, countdown);
             });
         }
@@ -370,7 +387,10 @@ customElements.define(
 
             this.playbackButton.setAttribute("aria-label", "Pause");
             this.playbackButton.setAttribute("aria-pressed", setPressedState);
-            this.playbackButton.setAttribute("aria-controls", this.targetMedia.getAttribute("id"));
+            this.playbackButton.setAttribute(
+                "aria-controls",
+                this.targetMedia.getAttribute("id"),
+            );
 
             this.playbackButton.classList.add("is-set");
         }
@@ -382,7 +402,10 @@ customElements.define(
 
             this.playbackButton.setAttribute("aria-label", "Pause");
             this.playbackButton.setAttribute("aria-pressed", setPressedState);
-            this.playbackButton.setAttribute("aria-controls", this.targetMedia.getAttribute("id"));
+            this.playbackButton.setAttribute(
+                "aria-controls",
+                this.targetMedia.getAttribute("id"),
+            );
 
             this.playbackButton.classList.add("was-created");
         }
@@ -446,7 +469,10 @@ customElements.define(
             });
         }
 
-        pressedStateHandler(btn = this.playbackButton, media = this.targetMedia) {
+        pressedStateHandler(
+            btn = this.playbackButton,
+            media = this.targetMedia,
+        ) {
             // btn.classList.remove('replay');
 
             /*
@@ -472,7 +498,10 @@ customElements.define(
             }
         }
 
-        replayMediaHandler(btn = this.playbackButton, media = this.targetMedia) {
+        replayMediaHandler(
+            btn = this.playbackButton,
+            media = this.targetMedia,
+        ) {
             if (btn.classList.contains("replay")) {
                 this.targetMedia.currentTime = 0;
                 btn.classList.remove("replay");
@@ -481,7 +510,8 @@ customElements.define(
 
         hasReducedMotion() {
             const hasReducedMotion =
-                window.matchMedia("(prefers-reduced-motion: reduce)").matches === true;
+                window.matchMedia("(prefers-reduced-motion: reduce)")
+                    .matches === true;
             if (hasReducedMotion) {
                 this.targetMedia?.pause();
                 this.pressedStateHandler();
@@ -491,6 +521,8 @@ customElements.define(
         /*
             Attribute loading-delay
             NOTE: delays mediaIsReady() which is needed for the revealAttr to display the playback button
+
+            TODO: Pause media playback during loading delay?
         */
         loadingDelay(defaultTime = this.#loadingDelayDefaultTime) {
             let loadingDelayAttr = "";
@@ -505,20 +537,35 @@ customElements.define(
                 loadingDelayAttr = this.getAttribute("loading-delay");
 
                 if (loadingDelayAttr) {
+
+                    // Determine the time unit of the loading delay attr
                     const unit = getTimeUnit(loadingDelayAttr);
 
+                    // Convert to unitless value in milliseconds
                     if (unit === "ms") {
                         loadingDelayAttr = loadingDelayAttr.replace(unit, "");
-                    } else if (unit === "s") {
-                        loadingDelayAttr = parseFloat(loadingDelayAttr.replace(unit, "")) * 1000;
+                    }
+
+                    // Convert seconds to milliseconds
+                    else if (unit === "s") {
+                        loadingDelayAttr =
+                            parseFloat(loadingDelayAttr.replace(unit, "")) *
+                            1000;
                     }
                 }
 
-                let loadingDelayTime = loadingDelayAttr !== "" ? loadingDelayAttr : defaultTime;
+                // Define delay time
+                let loadingDelayTime = loadingDelayAttr !== ""
+                                       ? loadingDelayAttr
+                                       : defaultTime;
 
-                return new Promise((resolve) => setTimeout(resolve, loadingDelayTime));
+                // Resolve the promise after the delay time controlling the timeout
+                return new Promise( resolve =>
+                    setTimeout( resolve, loadingDelayTime )
+                );
             }
 
+            // TODO: Return an error or warning if loading-delay attribute is not valid?
             return Promise.resolve();
         }
 
@@ -533,20 +580,22 @@ customElements.define(
 
                 let revealTimes = this.getAttribute("reveal");
 
-                let [displayTiming, displayDelay] = revealTimes ? revealTimes.split(" ") : false;
+                let [displayTiming, displayDelay] = revealTimes
+                    ? revealTimes.split(" ")
+                    : false;
 
                 if (displayTiming)
                     this.playbackButton?.style?.setProperty(
                         "--js-button-display-timing",
-                        `${hasTimeUnit(displayTiming) ? displayTiming : `${displayTiming}ms`}`
+                        `${hasTimeUnit(displayTiming) ? displayTiming : `${displayTiming}ms`}`,
                     );
 
                 if (displayDelay)
                     this.playbackButton?.style?.setProperty(
                         "--js-button-display-delay",
-                        `${hasTimeUnit(displayDelay) ? displayDelay : `${displayDelay}ms`}`
+                        `${hasTimeUnit(displayDelay) ? displayDelay : `${displayDelay}ms`}`,
                     );
             }
         }
-    }
+    },
 );

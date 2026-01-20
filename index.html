@@ -42,8 +42,8 @@
                     <!-- Video -->
                     <div role="listitem" class="margin-end-xl">
                         <div style="position: relative">
-                            <kelp-media-playback reveal="1s 2s">
-                                <style>
+                            <kelp-media-playback loading-delay="1s">
+                                <!-- <style>
                                     [media-has-controls] .custom-playback-group {
                                         bottom: 3.5rem;
                                     }
@@ -153,9 +153,10 @@
                                     .replay {
                                         color: #333;
                                     }
-                                </style>
+                                </style> -->
 
                                 <video
+                                    style="margin: 0"
                                     loading="lazy"
                                     src="./mediaplayback-demo-assets/chrissatchell_beach_video.mp4"
                                     width="1440"
@@ -163,80 +164,49 @@
                                     preload="auto"
                                     muted
                                     playsinline
-                                    style="margin: 0"
+                                    autoplay
                                 ></video>
 
-                                <div class="custom-playback-group">
-                                    <div>
-                                        <p>Chris Satchell</p>
-                                    </div>
-
-                                    <button class="custom-playback">
-                                        <span class="loading">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 640 640"
-                                            >
-                                                <path
-                                                    d="M286.7 96.1C291.7 113 282.1 130.9 265.2 135.9C185.9 159.5 128.1 233 128.1 320C128.1 426 214.1 512 320.1 512C426.1 512 512.1 426 512.1 320C512.1 233.1 454.3 159.6 375 135.9C358.1 130.9 348.4 113 353.5 96.1C358.6 79.2 376.4 69.5 393.3 74.6C498.9 106.1 576 204 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 204 141.1 106.1 246.9 74.6C263.8 69.6 281.7 79.2 286.7 96.1z"
-                                                />
-                                            </svg>
-                                        </span>
-
-                                        <span class="play">
-                                            <span class="play__entity-icon">&#9654;</span>
-                                            <svg
-                                                hidden
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 640 640"
-                                            >
-                                                <path
-                                                    d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM276.5 211.5C269.1 207 259.8 206.8 252.2 211C244.6 215.2 240 223.3 240 232L240 408C240 416.7 244.7 424.7 252.3 428.9C259.9 433.1 269.1 433 276.6 428.4L420.6 340.4C427.7 336 432.1 328.3 432.1 319.9C432.1 311.5 427.7 303.8 420.6 299.4L276.6 211.4zM362 320L288 365.2L288 274.8L362 320z"
-                                                />
-                                            </svg>
-                                        </span>
-
-                                        <span class="pause">
-                                            <span class="pause__entity-icon">⏸</span>
-                                            <svg
-                                                hidden
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 640 640"
-                                            >
-                                                <path
-                                                    d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM288 248C288 234.7 277.3 224 264 224C250.7 224 240 234.7 240 248L240 392C240 405.3 250.7 416 264 416C277.3 416 288 405.3 288 392L288 248zM400 248C400 234.7 389.3 224 376 224C362.7 224 352 234.7 352 248L352 392C352 405.3 362.7 416 376 416C389.3 416 400 405.3 400 392L400 248z"
-                                                />
-                                            </svg>
-                                        </span>
-
-                                        <span class="replay" style="font-size: 1.25rem">
-                                            &#8634;
-                                        </span>
-                                    </button>
-
-                                    <div class="progress-countdown">
-                                        <div role="status" aria-live="polite">
-                                            <p
-                                                aria-hidden="true"
-                                                class="progress-countdown-timecaption"
-                                            ></p>
-                                            <p>loading</p>
-                                        </div>
-
-                                        <svg width="47" height="47" viewBox="0 0 47 47">
-                                            <circle
-                                                id="circle"
-                                                class="circle_animation"
-                                                stroke-width="2"
-                                                stroke="#fff"
-                                                cx="23.5"
-                                                cy="23.5"
-                                                r="22.5"
-                                                fill="none"
+                                <button>
+                                    <span class="loading">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 640 640"
+                                        >
+                                            <path
+                                                d="M286.7 96.1C291.7 113 282.1 130.9 265.2 135.9C185.9 159.5 128.1 233 128.1 320C128.1 426 214.1 512 320.1 512C426.1 512 512.1 426 512.1 320C512.1 233.1 454.3 159.6 375 135.9C358.1 130.9 348.4 113 353.5 96.1C358.6 79.2 376.4 69.5 393.3 74.6C498.9 106.1 576 204 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 204 141.1 106.1 246.9 74.6C263.8 69.6 281.7 79.2 286.7 96.1z"
                                             />
                                         </svg>
-                                    </div>
-                                </div>
+                                    </span>
+
+                                    <span class="play">
+                                        <span class="play__entity-icon">&#9654;</span>
+                                        <svg
+                                            hidden
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 640 640"
+                                        >
+                                            <path
+                                                d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM276.5 211.5C269.1 207 259.8 206.8 252.2 211C244.6 215.2 240 223.3 240 232L240 408C240 416.7 244.7 424.7 252.3 428.9C259.9 433.1 269.1 433 276.6 428.4L420.6 340.4C427.7 336 432.1 328.3 432.1 319.9C432.1 311.5 427.7 303.8 420.6 299.4L276.6 211.4zM362 320L288 365.2L288 274.8L362 320z"
+                                            />
+                                        </svg>
+                                    </span>
+
+                                    <span class="pause">
+                                        <span class="pause__entity-icon">⏸</span>
+                                        <svg
+                                            hidden
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 640 640"
+                                        >
+                                            <path
+                                                d="M320 112C434.9 112 528 205.1 528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112zM320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM288 248C288 234.7 277.3 224 264 224C250.7 224 240 234.7 240 248L240 392C240 405.3 250.7 416 264 416C277.3 416 288 405.3 288 392L288 248zM400 248C400 234.7 389.3 224 376 224C362.7 224 352 234.7 352 248L352 392C352 405.3 362.7 416 376 416C389.3 416 400 405.3 400 392L400 248z"
+                                            />
+                                        </svg>
+                                    </span>
+
+                                    <span class="replay" style="font-size: 1.25rem"> &#8634; </span>
+                                </button>
                             </kelp-media-playback>
                         </div>
 
